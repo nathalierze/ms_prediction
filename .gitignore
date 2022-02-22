@@ -1,0 +1,7 @@
+env/
+.vscode/
+.dbdata/
+@localhost.session.sql
+__pycache__
+quickstart
+migrations
