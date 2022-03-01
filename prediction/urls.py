@@ -16,7 +16,7 @@ urlpatterns = [
         'post': 'create'
     })),
     path('sitzungssummary/<str:pk>', SitzungssummaryViewSet.as_view({
-        'get': 'getPrediction'
+        'post': 'getPrediction'
     }))
 
 ]

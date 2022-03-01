@@ -8,6 +8,7 @@ from .models import schueler, sitzungssummary, gast
 from .serializers import schuelerSerializer, sitzungssummarySerializer
 import random
 from rest_framework import generics
+from .calculatePrediction import featureEngineering
 
 class SchuelerViewSet(viewsets.ModelViewSet):
     """
@@ -66,6 +67,7 @@ class SitzungssummaryViewSet(viewsets.ModelViewSet):
 
     def getPrediction(self, request, pk):
         print(pk)
-        prediction = 0.88
+        prediction = featureEngineering(request.data)
+        #prediction = 0.88
 
         return Response(prediction)
