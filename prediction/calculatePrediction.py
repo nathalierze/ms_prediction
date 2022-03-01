@@ -1,6 +1,7 @@
 from .models import schueler
 import pandas as pd
 import datetime
+from .serializers import schuelerSerializer
 
 
 def featureEngineering(data):
@@ -89,10 +90,10 @@ def getSex(sex):
     return sex_m, sex_w
 
 def getJahreDabei(userID):
-    # user = schueler.objects.get(pk=userID)
-    # jahredabei = user['Klassenstufe'] - user['Anmeldeklassenstufe']
+    user = schueler.objects.get(pk=userID)
+    serializer = schuelerSerializer(user)
+    jahredabei = int(serializer.data['Klassenstufe']) - int(serializer.data['Anmeldeklassenstufe'])
 
-    jahredabei = 5
     return jahredabei
 
 
