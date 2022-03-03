@@ -1,6 +1,11 @@
 from rest_framework import serializers
 
-from .models import schueler, sitzungssummary, gast
+from .models import schueler, sitzungssummary, gast, xmlsaetze
+
+# class xmlsaetzeSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = xmlsaetze
+#         fields = '__all__'
 
 
 class schuelerSerializer(serializers.ModelSerializer):

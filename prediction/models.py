@@ -1,14 +1,24 @@
 from django.db import models
 
-
-
-class prediction(models.Model):
+class xmlsaetze(models.Model):
     pass
+    # class Meta:
+    #     db_table = 'xmlsaetze'
+
+    # #ID = models.IntegerField(primary_key=True)
+    # UserID = models.IntegerField(blank=True)
+    # UebungsID = models.IntegerField(blank=True)
+    # SatzID = models.IntegerField(blank=True)
+    # Erfolg = models.BooleanField(blank=True)
+
+    # def __str__(self) -> str:
+    #     return super().__str__()
+
 
 class schueler(models.Model):
     class Meta:
         db_table = 'schueler'
-    
+
     ID = models.IntegerField(primary_key=True)
     Name = models.CharField(max_length=30, blank=True )
     Passwort_express = models.CharField(max_length=32, blank=True )
