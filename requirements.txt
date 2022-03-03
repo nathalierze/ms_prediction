@@ -5,3 +5,7 @@ django-mysql==3.9
 django-cors-headers==3.5.0
 pandas
 pickle
+numpy
+matplotlib
+sklearn
+scipy

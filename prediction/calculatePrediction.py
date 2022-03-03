@@ -1,39 +1,57 @@
-from .models import schueler#, xmlsaetze
+from .models import schueler, xmlsaetze
 import pandas as pd
 import pickle
 import datetime
-from .serializers import schuelerSerializer#, xmlsaetzeSerializer
+from .serializers import schuelerSerializer, xmlsaetzeSerializer
+from rest_framework.renderers import JSONRenderer
+from django.core import serializers
+import json
+import numpy
+import sklearn
 
+def predict(data):
+    engineeredSet = featureEngineering(data)
+    prediction = getPrediction(engineeredSet)
+    roundedPred = round(prediction,2)
+    
+    return roundedPred
+
+def getPrediction(engineeredSet):
+    clf = pickle.load(open('DecisionTreemodel.pkl', 'rb'))
+    predicted = clf.predict_proba(engineeredSet)[:,1]    
+    return predicted[0]
 
 def featureEngineering(data):
 
-    p = getHistoricaldata(data['UserID'])
+    ft, nt, pruefung, training, version, vt, zt = getTestposition(data["Testposition"])
+    HA, Self, HA_nt, HA_vt, HA_zt = getHA(data["HA"])
+    wochentag, ist_Schulzeit = getDateTimeFields()
+    sex_m, sex_w = getSex(data['Sex'])
+    jahredabei = getJahreDabei(data['UserID'])
+    beendet = getBeendet(data['beendet'])
 
-    # ft, nt, pruefung, training, version, vt, zt = getTestposition(data["Testposition"])
-    # HA, Self, HA_nt, HA_vt, HA_zt = getHA(data["HA"])
-    # wochentag, ist_Schulzeit = getDateTimeFields()
-    # sex_m, sex_w = getSex(data['Sex'])
-    # jahredabei = getJahreDabei(data['UserID'])
-
-    # dataset = [[data['UserID'], data['UebungsID'], data['satzID'], data['Erstloesung'], data['Schussel'],
-    #    data['Schwierigkeit'], data['Art'], data['AufgabenID'], 
-    #    wochentag, ist_Schulzeit,data['MehrfachFalsch'], ft, nt,pruefung, training,version, vt, zt,
-    #    data['beendet'], data['Fehler'], HA, Self, HA_nt, HA_vt, HA_zt,
-    #    data['Klassenstufe'], jahredabei, sex_m, sex_w]]
+    #data['Schussel'],
+    dataset = [[data['UserID'], data['UebungsID'], data['satzID'], data['Erstloesung'], 
+       data['Schwierigkeit'], data['Art'], data['AufgabenID'], 
+       wochentag, ist_Schulzeit,data['MehrfachFalsch'], ft, nt,pruefung, training,version, vt, zt,
+       beendet, data['Fehler'], HA, Self, HA_nt, HA_vt, HA_zt,
+       data['Klassenstufe'], jahredabei, sex_m, sex_w]]
     
-    # df = pd.DataFrame(dataset, columns=['UserID', 'UebungsID', 'satzID', 'Erstloesung', 'Schussel',
-    #    'Schwierigkeit', 'Art', 'AufgabenID','Wochentag', 'ist_Schulzeit',
-    #    'MehrfachFalsch', 'Testposition__FT', 'Testposition__nt',
-    #    'Testposition__pruefung', 'Testposition__training',
-    #    'Testposition__version', 'Testposition__vt', 'Testposition__zt',
-    #    'beendet', 'Fehler', 'HA__HA', 'HA__Self', 'HA__nt', 'HA__vt', 'HA__zt',
-    #    'Klassenstufe', 'Jahredabei', 'Sex__m', 'Sex__w'])
+    # 'Schussel',
+    df = pd.DataFrame(dataset, columns=['UserID', 'UebungsID', 'satzID', 'Erstloesung',
+       'Schwierigkeit', 'Art', 'AufgabenID','Wochentag', 'ist_Schulzeit',
+       'MehrfachFalsch', 'Testposition__FT', 'Testposition__nt',
+       'Testposition__pruefung', 'Testposition__training',
+       'Testposition__version', 'Testposition__vt', 'Testposition__zt',
+       'beendet', 'Fehler', 'HA__HA', 'HA__Self', 'HA__nt', 'HA__vt', 'HA__zt',
+       'Klassenstufe', 'Jahredabei', 'Sex__m', 'Sex__w'])
 
-    # print(df)
+    df_hisotorical = getHistoricaldata(data['UserID'])
 
-    prediction = 0.66
-
-    return prediction
+    #merge data with historical data
+    result = pd.merge(df, df_hisotorical, on="UserID")
+    result = result.drop(columns=['UserID','UebungsID','satzID','AufgabenID','Art'])
+    return result
 
 
 def getHistoricaldata(userID):
@@ -47,28 +65,31 @@ def getHistoricaldata(userID):
     # baut DF mit nur null values
     df = pd.DataFrame(0, index =indexlist,columns =satzIDList)
 
-    # retrieve = xmlsaetze.objects.get(UserID=userID)
-    # xmlsaetze_userid = xmlsaetzeSerializer(retrieve)
+    #get xmlsaetze by userID
+    retrieve = xmlsaetze.objects.filter(UserID=userID)
+    data = serializers.serialize("json", retrieve, fields=('SatzID','Erfolg'))
+    struct = json.loads(data) # this is a list of dict
+    dfObj = pd.DataFrame(columns=['SatzID', 'Erfolg'])
+    for x in struct:
+        satzID = x['fields']['SatzID']
+        erfolg = x['fields']['Erfolg']
+        df2 = pd.DataFrame({'SatzID': [satzID],'Erfolg' : erfolg})
+        dfObj = pd.concat([dfObj, df2], ignore_index = True, axis = 0)
 
-    #print(xmlsaetze_userid)
+    #iterate trough dataframe and updates erfolg where user did something
+    for i in range(dfObj.shape[0]):
+        satzID_cell = dfObj.iloc[i,0]
+        erfolg_cell = dfObj.iloc[i,1]
 
-    #iterate trough dataframe row-wise
+        if satzID_cell in df.columns:
+            if(erfolg_cell ==1 | erfolg_cell == True):
+                df.loc[userID,satzID_cell] = 1
+            if(erfolg_cell ==0 | erfolg_cell == False):
+                df.loc[userID,satzID_cell] = -1
 
-    # for i in range(xmlsaetze_userid.shape[0]): #iterate over rows
-    #     user_cell = xmlsaetze_userid.iloc[i,0]
-    #     satz_cell = xmlsaetze_userid.iloc[i,1]
-    #     erfolg_cell = xmlsaetze_userid.iloc[i,2]
-
-    #     #check if sentence and user is in df
-    #     if satz_cell in df.columns:
-    #         if user_cell in df.index:
-    #             # set new cell value
-    #             if(erfolg_cell == 1):
-    #                 df.loc[user_cell,satz_cell] = 1
-    #             elif (erfolg_cell ==0):
-    #                 df.loc[user_cell,satz_cell] = -1   
-
-    return 1
+    df = df.reset_index()
+    df = df.rename(columns={"index": "UserID"})
+    return df
 
 def getTestposition(testposition):
     ft, nt, pruefung, training, version, vt, zt =0,0,0,0,0,0,0
@@ -133,3 +154,10 @@ def getJahreDabei(userID):
     jahredabei = int(serializer.data['Klassenstufe']) - int(serializer.data['Anmeldeklassenstufe'])
 
     return jahredabei
+
+def getBeendet(beendet):
+    print(beendet)
+    if(beendet == 'u'):
+        return 0
+    elif (beendet == 'b'):
+        return 1

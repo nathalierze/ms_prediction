@@ -1,18 +1,30 @@
+from sqlite3 import TimestampFromTicks
 from django.db import models
 
-class xmlsaetze(models.Model):
+
+class prediction(models.Model):
     pass
-    # class Meta:
-    #     db_table = 'xmlsaetze'
 
-    # #ID = models.IntegerField(primary_key=True)
-    # UserID = models.IntegerField(blank=True)
-    # UebungsID = models.IntegerField(blank=True)
-    # SatzID = models.IntegerField(blank=True)
-    # Erfolg = models.BooleanField(blank=True)
+class xmlsaetze(models.Model):
+    class Meta:
+        db_table = 'xmlsaetze'
 
-    # def __str__(self) -> str:
-    #     return super().__str__()
+    UserID = models.IntegerField(blank=True)
+    UebungsID = models.IntegerField(blank=True)
+    UserAttribut= models.CharField(max_length=7, blank=True )
+    Testart= models.CharField(max_length=10, blank=True )
+    Testposition= models.CharField(max_length=10, blank=True )
+    SatzID = models.IntegerField(blank=True)
+    Erstloesung = models.SmallIntegerField(blank=True)
+    Schussel= models.IntegerField(blank=True)
+    KorrekturBenutzt= models.IntegerField(blank=True )
+    Datum = models.DateTimeField(blank=True)
+    Erfolg = models.BooleanField(blank=True)
+    XMLstring = models.TextField(blank=True)
+    Loesungsnr= models.CharField(max_length=60, blank=True )
+
+    def __str__(self) -> str:
+        return super().__str__()
 
 
 class schueler(models.Model):
