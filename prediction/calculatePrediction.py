@@ -67,25 +67,30 @@ def getHistoricaldata(userID):
 
     #get xmlsaetze by userID
     retrieve = xmlsaetze.objects.filter(UserID=userID)
-    data = serializers.serialize("json", retrieve, fields=('SatzID','Erfolg'))
+    data = serializers.serialize("json", retrieve, fields=('SatzID','Erfolg','Datum'))
     struct = json.loads(data) # this is a list of dict
-    dfObj = pd.DataFrame(columns=['SatzID', 'Erfolg'])
+    dfObj = pd.DataFrame(columns=['SatzID', 'Erfolg','Datum'])
     for x in struct:
         satzID = x['fields']['SatzID']
         erfolg = x['fields']['Erfolg']
-        df2 = pd.DataFrame({'SatzID': [satzID],'Erfolg' : erfolg})
+        datum = x['fields']['Datum']
+        df2 = pd.DataFrame({'SatzID': [satzID],'Erfolg' : erfolg,'Datum':datum})
         dfObj = pd.concat([dfObj, df2], ignore_index = True, axis = 0)
 
     #iterate trough dataframe and updates erfolg where user did something
     for i in range(dfObj.shape[0]):
         satzID_cell = dfObj.iloc[i,0]
         erfolg_cell = dfObj.iloc[i,1]
+        datum_cell = dfObj.iloc[i,2]
+        current_time = datetime.datetime.now()
+        acceptedDate = current_time + pd.DateOffset(months=-3) # accepted date calculates the date of the last login minus 3 months
 
         if satzID_cell in df.columns:
-            if(erfolg_cell ==1 | erfolg_cell == True):
-                df.loc[userID,satzID_cell] = 1
-            if(erfolg_cell ==0 | erfolg_cell == False):
-                df.loc[userID,satzID_cell] = -1
+            if str(datum_cell) > str(acceptedDate):
+                if(erfolg_cell ==1 | erfolg_cell == True):
+                    df.loc[userID,satzID_cell] = 1
+                if(erfolg_cell ==0 | erfolg_cell == False):
+                    df.loc[userID,satzID_cell] = -1
 
     df = df.reset_index()
     df = df.rename(columns={"index": "UserID"})
