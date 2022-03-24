@@ -9,6 +9,7 @@ from .serializers import SchuelerSerializer, SitzungssummarySerializer
 import random
 from rest_framework import generics
 from .calculate_prediction import predict
+from .get_next_sentence import next_sentence
 
 class SchuelerViewSet(viewsets.ModelViewSet):
     """
@@ -34,8 +35,11 @@ class SchuelerViewSet(viewsets.ModelViewSet):
         serializer = SchuelerSerializer(schuelers)
         return Response(serializer.data)
 
-    def get_next_sentence():
-        return 0
+    def get_next_sentence(self, request, pk):
+        next = next_sentence(request.data)
+        
+        return Response(next)
+        
 
     # def update(self, request, pk=None):
     #     schuelers = schueler.objects.get(ID=pk)
@@ -68,7 +72,7 @@ class SitzungssummaryViewSet(viewsets.ModelViewSet):
         serializer = SitzungssummarySerializer(sitzungssummaries)
         return Response(serializer.data)
 
-    def getPrediction(self, request, pk):
+    def get_prediction(self, request, pk):
         print(pk)
         prediction = predict(request.data)
 

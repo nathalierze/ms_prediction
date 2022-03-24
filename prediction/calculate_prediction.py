@@ -6,8 +6,6 @@ from .serializers import SchuelerSerializer, XmlsaetzeSerializer
 from rest_framework.renderers import JSONRenderer
 from django.core import serializers
 import json
-import numpy
-import sklearn
 
 def predict(data):
     engineered_set = feature_engineering(data)

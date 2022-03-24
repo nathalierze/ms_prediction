@@ -104,4 +104,23 @@ class gast(models.Model):
     def __str__(self) -> str:
         return super().__str__()
 
-    
+
+class saetze(models.Model):
+    class Meta: 
+        db_table = 'saetze'
+
+    satzID = models.IntegerField(primary_key=True)
+    AufgabenID = models.IntegerField(blank=True)
+    Art = models.CharField(max_length=10)
+    Satznr = models.IntegerField(blank=True)
+    Versionsnr = models.IntegerField(blank=True)
+    Aufgabe = models.CharField(max_length=300)
+    Loesung = models.CharField(max_length=900)
+    Hilfe = models.CharField(max_length=1500)
+    Erklaerung = models.CharField(max_length=1000)
+    Schwierigkeit = models.FloatField(blank=True)
+    Gesamtschwierigkeit = models.FloatField(blank=True)
+    XMLstring = models.TextField(blank=True)
+
+    def __str__(self) -> str:
+        return super().__str__()
