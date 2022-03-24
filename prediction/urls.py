@@ -9,14 +9,14 @@ urlpatterns = [
     })),
     path('schueler/<str:pk>', SchuelerViewSet.as_view({
         'get': 'retrieve',
-        'post':'update'
+        'post':'get_next_sentence'
     })),
     path('sitzungssummary', SitzungssummaryViewSet.as_view({
         'get':'list',
         'post': 'create'
     })),
     path('sitzungssummary/<str:pk>', SitzungssummaryViewSet.as_view({
-        'post': 'getPrediction'
+        'post': 'get_prediction'
     }))
 
 ]
