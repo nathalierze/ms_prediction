@@ -17,17 +17,18 @@ def next_sentence(data):
     #checken, welche Satz IDs predicted werden müssen
     satz_ids, choosing_strategy = get_satz_ids(aufgaben_id, geloeste_saetze, versionline)
 
-    # predictions = [[],[]]
-    # for x in satz_ids:
-    #     full_data = accumulate_satz_id(data, x)
-    #     p = predict(full_data)
-    #     predictions = predictions.append([x,p])
+    predictions = [[],[]]
+    for x in satz_ids:
+        full_data = accumulate_satz_id(x, data)
+        p = predict(full_data)
+        print(p)
+        # predictions = predictions.append([x,p])
     
     # next_sentence_id = choose_next_sentence(predictions, choosing_strategy)
 
     # return next_sentence_id
     return 5
-    
+
 """
 takes aufgaben_id, geloeste_saetze and versionline
 returns choosing strategy and list_of_ids to predict
@@ -56,21 +57,32 @@ def get_satz_ids(aufgaben_id, geloeste_saetze, versionline):
 
 
 """
-
+finds missing fields that are necessary for the predictionmodel
 """
-def accumulate_satz_id(data, id):
+def accumulate_satz_id(id, data):
     data['satzID'] = id
 
+    #schwierigkeit
     retrieve = saetze.objects.filter(satzID =id)
-    data = serializers.serialize("json", retrieve, fields=('satzID','Schwierigkeit'))
-    sentence = json.loads(data) # this is a list of dict
-    data['Schwierigkeit'] = sentence['fields']['Schwierigkeit']
+    serialized = serializers.serialize("json", retrieve, fields=('Schwierigkeit'))
+    sentence = json.loads(serialized) # this is a list of dict
+    for x in sentence:
+        data['Schwierigkeit'] = x['fields']['Schwierigkeit']
 
-
-    
     #erstloesung
     #mehrfachfalsch
+    retrieve = xmlsaetze.objects.filter(UebungsID = data['UebungsID'], SatzID = id)
+    serialized = serializers.serialize("json", retrieve, fields=('Erstloesung','Loesungsnr'))
+    sentence = json.loads(serialized)
 
+    if not sentence:
+        # list is empty
+        data['Erstloesung'] = 1
+        data['MehrfachFalsch'] = 0
+    else:
+        for x in sentence:
+            data['Erstloesung'] = x['fields']['Erstloesung']
+            data['MehrfachFalsch'] = x['fields']['Loesungsnr']
 
     return data
 
