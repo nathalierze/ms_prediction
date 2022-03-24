@@ -1,5 +1,6 @@
 from .models import schueler, xmlsaetze, saetze
 import pandas as pd
+import numpy as np
 import pickle
 import datetime
 from .serializers import SchuelerSerializer, XmlsaetzeSerializer
@@ -17,14 +18,14 @@ def next_sentence(data):
     #checken, welche Satz IDs predicted werden müssen
     satz_ids, choosing_strategy = get_satz_ids(aufgaben_id, geloeste_saetze, versionline)
 
-    predictions = [[],[]]
+    predictions = []
     for x in satz_ids:
         full_data = accumulate_satz_id(x, data)
         p = predict(full_data)
         print(p)
-        # predictions = predictions.append([x,p])
+        predictions.append([x,p])
     
-    # next_sentence_id = choose_next_sentence(predictions, choosing_strategy)
+    next_sentence_id = choose_next_sentence(predictions, choosing_strategy)
 
     # return next_sentence_id
     return 5
@@ -87,12 +88,16 @@ def accumulate_satz_id(id, data):
     return data
 
 """
- 
+ chooses from predictions the sentence with max p and checkes if it is below threshold
 """
 def choose_next_sentence(predictions, choosing_strategy):
 
-    val, idx = max((val, idx) for (idx, val) in enumerate(predictions[1]))
-    id = predictions[idx]
+    array_of_max = np.argmax(predictions, axis=0)  # return list of max value in list.
+    index_of_max = array_of_max[1]
+
+    id = predictions[index_of_max][0]
+    val = predictions[index_of_max][1]
+
     threshold = 0.5
 
     # do not check for p and versioning
