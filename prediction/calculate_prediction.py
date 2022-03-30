@@ -1,3 +1,4 @@
+from decimal import Rounded
 from .models import schueler, xmlsaetze
 import pandas as pd
 import pickle
@@ -8,10 +9,12 @@ from django.core import serializers
 import json
 
 def predict(data):
-    engineered_set = feature_engineering(data)
-    prediction = get_prediction(engineered_set)
-    rounded_pred = round(prediction,2)
+    # engineered_set = feature_engineering(data)
+    # prediction = get_prediction(engineered_set)
+    # rounded_pred = round(prediction,2)
     
+    rounded_pred = 0.7
+
     return rounded_pred
 
 def get_prediction(engineered_set):
@@ -58,6 +61,7 @@ def get_historical_data(userID):
     saetze = pickle.load(infile)
     infile.close()
     satz_ID_list = list(saetze.satzID)
+    satz_ID_list = [str(item) for item in satz_ID_list]
     indexlist = [userID]
     # baut DF mit nur null values
     df = pd.DataFrame(0, index =indexlist,columns =satz_ID_list)
@@ -158,7 +162,6 @@ def get_jahre_dabei(userID):
     return jahre_dabei
 
 def get_beendet(beendet):
-    print(beendet)
     if(beendet == 'u'):
         return 0
     elif (beendet == 'b'):

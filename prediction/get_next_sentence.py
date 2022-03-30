@@ -16,18 +16,30 @@ def next_sentence(data):
     geloeste_saetze = data['geloesteSaetze']
     versionline = data['versionline']
     modus = data['Testposition']
+    seq_mode = data['seqMode'] # can be "normal", "onlyVersion", "onlyBaseline"
 
-    if(modus == 'training'):
-        #checken, welche Satz IDs predicted werden müssen
+    print('versionline')
+    print(versionline)
+
+    if(seq_mode == "normal"):
         predictions, choosing_strategy = get_satz_ids(aufgaben_id, geloeste_saetze, versionline, data)
         next_sentence_id, modus = choose_next_sentence(predictions, choosing_strategy, aufgaben_id, versionline, geloeste_saetze, data)
-    else:
-        next_sentence_id, modus = get_version_sentence(aufgaben_id, versionline, geloeste_saetze, data)
+    elif(seq_mode =="onlyBaseline"):
+        predictions, choosing_strategy = get_satz_ids(aufgaben_id, geloeste_saetze, versionline, data)
+        next_sentence_id, modus = choose_next_sentence(predictions, 1, aufgaben_id, versionline, geloeste_saetze, data)
+    elif(seq_mode== "onlyVersion"):
+        next_sentence_id, modus = get_version_sentence(aufgaben_id, versionline, geloeste_saetze, data)        
 
     sentence_nr, version_nr = get_sentence_nr_from_id(next_sentence_id)
+    
+    
+    print(version_nr)
+    print(sentence_nr)
+    
+    #print(next_sentence_id)
 
-    # return sentence_nr, version_nr, modus
-    return 5, 1, 'training'
+    return sentence_nr, version_nr, modus
+    #return 5, 1, 'training'
 
 """
 takes aufgaben_id, geloeste_saetze and versionline
@@ -36,8 +48,8 @@ returns choosing strategy and list_of_ids to predict
 def get_satz_ids(aufgaben_id, geloeste_saetze, versionline, data):
     # get all SatzIDs from AufgabenID
     retrieve = saetze.objects.filter(AufgabenID =aufgaben_id, Versionsnr = versionline)
-    data = serializers.serialize("json", retrieve, fields=('AufgabenID'))
-    all_ids = json.loads(data)
+    serialized = serializers.serialize("json", retrieve, fields=('AufgabenID'))
+    all_ids = json.loads(serialized)
     all_ids_list = []
     for x in all_ids:
         satz_ID = str(x['pk'])
@@ -53,7 +65,7 @@ def get_satz_ids(aufgaben_id, geloeste_saetze, versionline, data):
     else:
         choosing_strategy = 0
 
-    predictions = send_to_prediction(list_of_ids)
+    predictions = send_to_prediction(list_of_ids, data)
 
     return predictions, choosing_strategy
 
@@ -63,7 +75,6 @@ def send_to_prediction(satz_ids, data):
     for x in satz_ids:
         full_data = accumulate_satz_id(x, data)
         p = predict(full_data)
-        print(p)
         predictions.append([x,p])
 
     return predictions
@@ -74,7 +85,7 @@ def send_to_prediction(satz_ids, data):
 finds missing fields that are necessary for the predictionmodel
 """
 def accumulate_satz_id(id, data):
-    data['satzID'] = id
+    data['satzID'] = str(id)
 
     #schwierigkeit
     retrieve = saetze.objects.filter(satzID =id)
@@ -110,8 +121,7 @@ def choose_next_sentence(predictions, choosing_strategy, aufgaben_id, versionlin
 
     id = predictions[index_of_max][0]
     val = predictions[index_of_max][1]
-
-    threshold = 0.5
+    threshold = 0.99
 
     # do not check for p and versioning
     if (choosing_strategy == 1):
@@ -127,11 +137,10 @@ def choose_next_sentence(predictions, choosing_strategy, aufgaben_id, versionlin
 if p is <50%, all version sentences are retrieved, predicted, and the sentence with the highest p is taken
 """
 def get_version_sentence(aufgaben_id, versionline, geloeste_saetze, data):
-
     # get all SatzIDs from AufgabenID from other versions
     retrieve = saetze.objects.filter(AufgabenID =aufgaben_id).exclude(Versionsnr = versionline)
-    data = serializers.serialize("json", retrieve, fields=('AufgabenID'))
-    all_ids = json.loads(data)
+    serialized = serializers.serialize("json", retrieve, fields=('AufgabenID'))
+    all_ids = json.loads(serialized)
     all_ids_list = []
     for x in all_ids:
         satz_ID = str(x['pk'])
@@ -148,7 +157,7 @@ def get_version_sentence(aufgaben_id, versionline, geloeste_saetze, data):
     id = predictions[index_of_max][0]
     val = predictions[index_of_max][1]
 
-    return id, 'modus'
+    return id, 'version'
 
 """
 Retrieves sentence_nr and version_nr from Satz ID

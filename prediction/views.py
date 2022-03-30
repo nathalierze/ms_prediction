@@ -37,7 +37,6 @@ class SchuelerViewSet(viewsets.ModelViewSet):
 
     def get_next_sentence(self, request, pk):
         next = next_sentence(request.data)
-        
         return Response(next)
         
 
