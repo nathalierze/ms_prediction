@@ -15,6 +15,7 @@ class predictions(models.Model):
     modus = models.CharField(max_length=20,blank=True)
     versionline = models.IntegerField(blank=True)
     version = models.IntegerField(blank=True)
+    Datum = models.DateTimeField(blank=True)
 
     def __str__(self) -> str:
         return super().__str__()

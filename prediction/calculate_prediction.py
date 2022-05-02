@@ -66,9 +66,10 @@ def sendHistoricAndPrediction(data):
 
     data['seqMode'] = 0
     data['versionline'] = 0
-
-
     rounded_pred = predict(data)
+
+    #sends report to db
+    n = sendReport(data, rounded_pred)
 
     return rounded_pred
 
@@ -79,11 +80,6 @@ def predict(data):
 
     if(rounded_pred<0.1):
         rounded_pred = 0.1
-
-    print(rounded_pred)
-
-    #sends report to db
-    n = sendReport(data, rounded_pred)
 
     return rounded_pred
 

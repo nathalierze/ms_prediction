@@ -25,12 +25,12 @@ def next_sentence(data):
 
     if(seq_mode == "normal"):
         predictions, choosing_strategy = get_satz_ids(aufgaben_id, geloeste_saetze, versionline, data)
-        next_sentence_id, modus = choose_next_sentence(predictions, choosing_strategy, aufgaben_id, versionline, geloeste_saetze, data)
+        next_sentence_id, modus, prediction = choose_next_sentence(predictions, choosing_strategy, aufgaben_id, versionline, geloeste_saetze, data)
     elif(seq_mode =="onlyBaseline"):
         predictions, choosing_strategy = get_satz_ids(aufgaben_id, geloeste_saetze, versionline, data)
-        next_sentence_id, modus = choose_next_sentence(predictions, 1, aufgaben_id, versionline, geloeste_saetze, data)
+        next_sentence_id, modus, prediction = choose_next_sentence(predictions, 1, aufgaben_id, versionline, geloeste_saetze, data)
     elif(seq_mode== "onlyVersion"):
-        next_sentence_id, modus = get_version_sentence(aufgaben_id, versionline, geloeste_saetze, data)        
+        next_sentence_id, modus, prediction = get_version_sentence(aufgaben_id, versionline, geloeste_saetze, data)        
 
     sentence_nr, version_nr = get_sentence_nr_from_id(next_sentence_id)
     
@@ -39,8 +39,10 @@ def next_sentence(data):
     print("sentence nr")
     print(sentence_nr)
     print('---------------')
-    
-    #print(next_sentence_id)
+
+    #sends report to db
+    n = sendReport(data, prediction)
+
 
     return sentence_nr, version_nr, modus
 
@@ -94,11 +96,11 @@ def choose_next_sentence(predictions, choosing_strategy, aufgaben_id, versionlin
 
     # do not check for p and versioning
     if (choosing_strategy == 1):
-        return id, 'training'
+        return id, 'training', val
     # check for p and versioning
     else:
         if val>threshold:
-            return id, 'training'
+            return id, 'training', val
         else:
             return get_version_sentence(aufgaben_id, versionline, geloeste_saetze, data)
 
@@ -137,7 +139,7 @@ def get_version_sentence(aufgaben_id, versionline, geloeste_saetze, data):
     print(id)
     print('-----')
 
-    return id, 'version'
+    return id, 'version', val
 
 """
 Retrieves sentence_nr and version_nr from Satz ID
