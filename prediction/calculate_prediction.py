@@ -1,5 +1,5 @@
 from decimal import Rounded
-from .models import schueler, xmlsaetze
+from .models import schueler, xmlsaetze, saetze
 import pandas as pd
 import pickle
 import datetime
@@ -7,19 +7,89 @@ from .serializers import SchuelerSerializer, XmlsaetzeSerializer
 from rest_framework.renderers import JSONRenderer
 from django.core import serializers
 import json
+import random
+from .savePredictions import sendReport
+
+"""
+intv 6
+"""
+def send_to_prediction(satz_ids, data):
+    predictions = []
+    
+    global df_hisotorical
+    df_hisotorical = get_historical_data(data['UserID'])
+
+    for x in satz_ids:
+        full_data = accumulate_satz_id(x, data)
+        p = predict(full_data)
+        predictions.append([x,p])
+
+    return predictions
+
+
+"""
+finds missing fields that are necessary for the predictionmodel, intv 6
+"""
+def accumulate_satz_id(id, data):
+    data['satzID'] = str(id)
+
+    #schwierigkeit
+    retrieve = saetze.objects.filter(satzID =id)
+    serialized = serializers.serialize("json", retrieve, fields=('Schwierigkeit'))
+    sentence = json.loads(serialized) # this is a list of dict
+    for x in sentence:
+        data['Schwierigkeit'] = x['fields']['Schwierigkeit']
+
+    #erstloesung
+    #mehrfachfalsch
+    retrieve = xmlsaetze.objects.filter(UebungsID = data['UebungsID'], SatzID = id)
+    serialized = serializers.serialize("json", retrieve, fields=('Erstloesung','Loesungsnr'))
+    sentence = json.loads(serialized)
+
+    if not sentence:
+        # list is empty
+        data['Erstloesung'] = 1
+        data['MehrfachFalsch'] = 0
+    else:
+        for x in sentence:
+            data['Erstloesung'] = x['fields']['Erstloesung']
+            data['MehrfachFalsch'] = x['fields']['Loesungsnr']
+
+    return data
+
+"""
+wird aufgerufen in view get_prediction
+"""
+def sendHistoricAndPrediction(data):
+    global df_hisotorical
+    df_hisotorical = get_historical_data(data['UserID'])
+
+    data['seqMode'] = 0
+    data['versionline'] = 0
+
+
+    rounded_pred = predict(data)
+
+    return rounded_pred
 
 def predict(data):
-    # engineered_set = feature_engineering(data)
-    # prediction = get_prediction(engineered_set)
-    # rounded_pred = round(prediction,2)
-    
-    rounded_pred = 0.7
+    engineered_set = feature_engineering(data)
+    prediction = get_prediction(engineered_set)
+    rounded_pred = round(prediction,2)
+
+    if(rounded_pred<0.1):
+        rounded_pred = 0.1
+
+    print(rounded_pred)
+
+    #sends report to db
+    n = sendReport(data, rounded_pred)
 
     return rounded_pred
 
 def get_prediction(engineered_set):
-    clf = pickle.load(open('Decisiontreemodel.pkl', 'rb'))
-    predicted = clf.predict_proba(engineered_set)[:,1]    
+    clf = pickle.load(open('Decisiontreemodel_3months.pkl', 'rb'))
+    predicted = clf.predict_proba(engineered_set)[:,1]  
     return predicted[0]
 
 def feature_engineering(data):
@@ -46,16 +116,17 @@ def feature_engineering(data):
        'beendet', 'Fehler', 'HA__HA', 'HA__Self', 'HA__nt', 'HA__vt', 'HA__zt',
        'Klassenstufe', 'Jahredabei', 'Sex__m', 'Sex__w'])
 
-    df_hisotorical = get_historical_data(data['UserID'])
 
     #merge data with historical data
+    global df_hisotorical
     result = pd.merge(df, df_hisotorical, on="UserID")
     result = result.drop(columns=['UserID','UebungsID','satzID','AufgabenID','Art'])
+
     return result
 
 
 def get_historical_data(userID):
-    
+    print("in historical data")
     #importiert alle satzIDs aus der Kompetenzgruppe
     infile = open('satzIDs.pkl','rb')
     saetze = pickle.load(infile)
@@ -95,6 +166,10 @@ def get_historical_data(userID):
 
     df = df.reset_index()
     df = df.rename(columns={"index": "UserID"})
+
+    global historical_data
+    historical_data = df
+
     return df
 
 def get_testposition(testposition):

@@ -2,8 +2,22 @@ from sqlite3 import TimestampFromTicks
 from django.db import models
 
 
-class prediction(models.Model):
-    pass
+class predictions(models.Model):
+    class Meta:
+        db_table = 'predictions'
+
+    UebungsID = models.IntegerField(blank=True)
+    SatzID = models.IntegerField(blank=True)
+    UserID = models.IntegerField(blank=True)
+    interventiongroup = models.CharField(max_length=10,blank=True)
+    prediction = models.FloatField(blank=True)
+    seqMode = models.CharField(max_length=20,blank=True)
+    modus = models.CharField(max_length=20,blank=True)
+    versionline = models.IntegerField(blank=True)
+    version = models.IntegerField(blank=True)
+
+    def __str__(self) -> str:
+        return super().__str__()
 
 class xmlsaetze(models.Model):
     class Meta:

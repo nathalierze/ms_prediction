@@ -4,11 +4,11 @@ from django.shortcuts import render
 # Create your views here.
 from rest_framework import viewsets, status
 from rest_framework.response import Response
-from .models import schueler, sitzungssummary, gast
+from .models import predictions, schueler, sitzungssummary, gast
 from .serializers import SchuelerSerializer, SitzungssummarySerializer
 import random
 from rest_framework import generics
-from .calculate_prediction import predict
+from .calculate_prediction import sendHistoricAndPrediction
 from .get_next_sentence import next_sentence
 
 class SchuelerViewSet(viewsets.ModelViewSet):
@@ -38,14 +38,7 @@ class SchuelerViewSet(viewsets.ModelViewSet):
     def get_next_sentence(self, request, pk):
         next = next_sentence(request.data)
         return Response(next)
-        
-
-    # def update(self, request, pk=None):
-    #     schuelers = schueler.objects.get(ID=pk)
-    #     serializer = SchuelerSerializer(instance=schuelers, data=request.data)
-    #     serializer.is_valid(raise_exception=True)
-    #     serializer.save()
-    #     return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+    
 
 class SitzungssummaryViewSet(viewsets.ModelViewSet):
     """
@@ -73,6 +66,6 @@ class SitzungssummaryViewSet(viewsets.ModelViewSet):
 
     def get_prediction(self, request, pk):
         print(pk)
-        prediction = predict(request.data)
+        prediction = sendHistoricAndPrediction(request.data)
 
         return Response(prediction)
