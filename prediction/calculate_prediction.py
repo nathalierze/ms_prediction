@@ -1,7 +1,7 @@
 from decimal import Rounded
 from .models import schueler, xmlsaetze, saetze
 import pandas as pd
-import pickle
+import pickle5 as pickle
 import datetime
 from .serializers import SchuelerSerializer, XmlsaetzeSerializer
 from rest_framework.renderers import JSONRenderer
