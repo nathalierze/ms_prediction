@@ -4,7 +4,7 @@ mysqlclient==2.0.1
 django-mysql==3.9
 django-cors-headers==3.5.0
 pandas
-pickle==1.0.2
+pickle
 numpy
 matplotlib
 sklearn==1.0.2
