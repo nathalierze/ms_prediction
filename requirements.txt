@@ -9,7 +9,7 @@ numpy
 matplotlib
 
 #sklearn==1.0.2
-scikit-learn==1.8.0
+scikit-learn
 scipy==1.0.2
 requests == 2.25.0
 gunicorn==18.0.0
