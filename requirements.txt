@@ -7,9 +7,7 @@ pandas
 pickle5
 numpy
 matplotlib
-
-#sklearn==1.0.2
 scikit-learn
-scipy==1.0.2
+scipy
 requests == 2.25.0
 gunicorn==18.0.0
