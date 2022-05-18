@@ -23,23 +23,6 @@ class SchuelerViewSet(viewsets.ModelViewSet):
     authentication_classes = [authentication.SessionAuthentication, TokenAuthentication]
     permission_classes = [permissions.IsAuthenticated]
 
-#     def list(self, request):
-#         schuelers = schueler.objects.all()
-#         print(schuelers.last)
-#         serializer = SchuelerSerializer(schuelers, many=True)
-#         return Response(serializer.data)
-    
-#     def create(self, request):
-#         serializer = SchuelerSerializer(data=request.data)
-#         serializer.is_valid(raise_exception=True)
-#         serializer.save()
-#         return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-#     def retrieve(self, request, pk=None):
-#         schuelers = schueler.objects.get(ID=pk)
-#         serializer = SchuelerSerializer(schuelers)
-#         return Response(serializer.data)
-
     def get_next_sentence(self, request, pk):
         next = next_sentence(request.data)
         return Response(next)
@@ -53,23 +36,6 @@ class SitzungssummaryViewSet(viewsets.ModelViewSet):
     serializer_class = SchuelerSerializer
     authentication_classes = [authentication.SessionAuthentication, TokenAuthentication]
     permission_classes = [permissions.IsAuthenticated]
-
-    # def list(self, request):
-    #     sitzungssummaries = sitzungssummary.objects.all()
-    #     print(sitzungssummaries.last)
-    #     serializer = SitzungssummarySerializer(sitzungssummaries, many=True)
-    #     return Response(serializer.data)
-    
-    # def create(self, request):
-    #     serializer = SitzungssummarySerializer(data=request.data)
-    #     serializer.is_valid(raise_exception=True)
-    #     serializer.save()
-    #     return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-    # def retrieve(self, request, pk):
-    #     sitzungssummaries = sitzungssummary.objects.get(ID=pk)
-    #     serializer = SitzungssummarySerializer(sitzungssummaries)
-    #     return Response(serializer.data)
 
     def get_prediction(self, request, pk):
         try:
