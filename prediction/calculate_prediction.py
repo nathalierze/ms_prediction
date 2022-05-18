@@ -1,7 +1,7 @@
 from decimal import Rounded
 from .models import schueler, xmlsaetze, saetze
 import pandas as pd
-import pickle5 as pickle
+import pickle
 import datetime
 from .serializers import SchuelerSerializer, XmlsaetzeSerializer
 from rest_framework.renderers import JSONRenderer
@@ -84,7 +84,7 @@ def predict(data):
     return rounded_pred
 
 def get_prediction(engineered_set):
-    clf = pickle.load(open('../Decisiontreemodel_3months.pkl', 'rb'))
+    clf = pickle.load(open('Decisiontreemodel_3months.pkl', 'rb'))
     predicted = clf.predict_proba(engineered_set)[:,1]  
     return predicted[0]
 
