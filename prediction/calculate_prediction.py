@@ -75,7 +75,7 @@ def sendHistoricAndPrediction(data):
 
 def predict(data):
     engineered_set = feature_engineering(data)
-    prediction = get_prediction(engineered_set)
+    prediction = get_prediction2(engineered_set)##changed here
 
     print(prediction)
     rounded_pred = round(prediction,4)
