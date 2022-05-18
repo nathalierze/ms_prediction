@@ -84,7 +84,7 @@ def predict(data):
     return rounded_pred
 
 def get_prediction(engineered_set):
-    clf = pickle.load(open('prediction/Decisiontreemodel_3months.pkl', 'rb'))
+    clf = pickle.load(open('DecisionTreemodel_3months.pkl', 'rb'))
     predicted = clf.predict_proba(engineered_set)[:,1]  
     return predicted[0]
 
