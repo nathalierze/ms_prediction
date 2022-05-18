@@ -78,8 +78,8 @@ def predict(data):
     prediction = get_prediction(engineered_set)
 
     print(prediction)
-    rounded_pred = round(prediction,2)
-
+    rounded_pred = round(prediction,4)
+    print(rounded_pred)
     if(rounded_pred<0.1):
         rounded_pred = 0.1
 
