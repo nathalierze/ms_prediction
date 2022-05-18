@@ -11,3 +11,4 @@ scikit-learn
 scipy
 requests == 2.25.0
 gunicorn==18.0.0
+sentry-sdk
