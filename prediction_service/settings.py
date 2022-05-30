@@ -26,7 +26,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'django-insecure-c@4wp(*ft)9(t0@*h_856jz9l9vk37!okp9rd%uu7r7+g2%y3a'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = [
     'ortho-prediction-staging.herokuapp.com',
