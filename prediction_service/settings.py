@@ -101,7 +101,7 @@ DATABASES = {
         'NAME': 'orthogra_db1',
         'USER': 'orthogra_1',
         'PASSWORD':'mZGK37Gt1cGBmx8F',
-        'HOST':'188.40.29.147', #'host.docker.internal',#'db',#localhost
+        'HOST':'188.40.29.147',
         'PORT':'3306'
      }
 }
