@@ -76,15 +76,17 @@ def sendHistoricAndPrediction(data):
 def predict(data):
     engineered_set = feature_engineering(data)
     prediction = get_prediction(engineered_set)
-    rounded_pred = round(prediction,2)
 
+    print(prediction)
+    rounded_pred = round(prediction,4)
+    print(rounded_pred)
     if(rounded_pred<0.1):
         rounded_pred = 0.1
 
     return rounded_pred
 
 def get_prediction(engineered_set):
-    clf = pickle.load(open('Decisiontreemodel_3months.pkl', 'rb'))
+    clf = pickle.load(open('DecisionTreemodel_3months.pkl', 'rb'))
     predicted = clf.predict_proba(engineered_set)[:,1]  
     return predicted[0]
 

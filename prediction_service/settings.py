@@ -11,9 +11,12 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 
 from pathlib import Path
+import os
+import sentry_sdk
+from sentry_sdk.integrations.django import DjangoIntegration
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 # Quick-start development settings - unsuitable for production
@@ -23,9 +26,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-c@4wp(*ft)9(t0@*h_856jz9l9vk37!okp9rd%uu7r7+g2%y3a'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    'ortho-prediction-staging.herokuapp.com',
+    'localhost',
+    'ortho-prediction-prod.herokuapp.com']
 
 
 # Application definition
@@ -38,9 +44,16 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework.authtoken',
     'corsheaders',
     'prediction'
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication', 
+    ],
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -78,11 +91,17 @@ WSGI_APPLICATION = 'prediction_service.wsgi.application'
 
 DATABASES = {
     'default': {
+        # 'ENGINE': 'django.db.backends.mysql',
+        # 'NAME': 'orthogra_db1',
+        # 'USER': 'root',
+        # 'PASSWORD':'test',
+        # 'HOST':'host.docker.internal',#'db',#localhost
+        # 'PORT':'3306'
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'orthogra_db1',
-        'USER': 'root',
-        'PASSWORD':'test',
-        'HOST':'host.docker.internal',#'db',#localhost
+        'USER': 'orthogra_1',
+        'PASSWORD':'mZGK37Gt1cGBmx8F',
+        'HOST':'188.40.29.147',
         'PORT':'3306'
      }
 }
@@ -119,10 +138,16 @@ USE_I18N = True
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
+# Static files (CSS, JavaScript)
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATIC_URL = '/static/'
+#old STATIC_URL = 'static/'
 
-STATIC_URL = 'static/'
+# Extra places for collectstatic to find static files.
+STATICFILES_DIRS = (
+    os.path.join(BASE_DIR, 'static'),
+)
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
@@ -130,3 +155,17 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ORIGIN_ALLOW_ALL = True
+
+sentry_sdk.init(
+    dsn="https://90c1dd4300344e8e8eb2cddede3a0f00@o1252477.ingest.sentry.io/6418730",
+    integrations=[DjangoIntegration()],
+
+    # Set traces_sample_rate to 1.0 to capture 100%
+    # of transactions for performance monitoring.
+    # We recommend adjusting this value in production.
+    traces_sample_rate=1.0,
+
+    # If you wish to associate users to errors (assuming you are using
+    # django.contrib.auth) you may enable sending PII data.
+    send_default_pii=True
+)
