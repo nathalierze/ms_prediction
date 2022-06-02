@@ -39,7 +39,7 @@ class SitzungssummaryViewSet(viewsets.ModelViewSet):
 
     def get_prediction(self, request, pk):
         try:
-            auth = schueler.objects.get(Loginname = request.headers['Username'])
+            #auth = schueler.objects.get(Loginname = request.headers['Username'])
 
             print(pk)
             prediction = sendHistoricAndPrediction(request.data)
