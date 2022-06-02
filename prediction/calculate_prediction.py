@@ -235,8 +235,11 @@ def get_jahre_dabei(userID):
 
     if(serializer.data['Klassenstufe'] in klassen & serializer.data['Anmeldeklassenstufe'] in klassen):
         jahre_dabei = int(serializer.data['Klassenstufe']) - int(serializer.data['Anmeldeklassenstufe'])
+        print("jahre dabei")
+        print(jahre_dabei)
         return jahre_dabei
     else:
+        print("else")
         return 0
 
 def get_beendet(beendet):
