@@ -231,13 +231,8 @@ def get_jahre_dabei(userID):
     user = schueler.objects.get(pk=userID)
     serializer = SchuelerSerializer(user)
 
-    klassenstufen = ['0','1','2','3','4','5','6','7','8','9','10','11','12','13']
-    jahre_dabei = 0
-    if(serializer.data['Klassenstufe'] in klassenstufen ){
-        jahre_dabei = int(serializer.data['Klassenstufe']) - int(serializer.data['Anmeldeklassenstufe'])
-    }
-
-    print(jahre_dabei)
+    
+    jahre_dabei = int(serializer.data['Klassenstufe']) - int(serializer.data['Anmeldeklassenstufe'])
 
     return jahre_dabei
 
