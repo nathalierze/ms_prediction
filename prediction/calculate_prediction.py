@@ -237,6 +237,8 @@ def get_jahre_dabei(userID):
         jahre_dabei = int(serializer.data['Klassenstufe']) - int(serializer.data['Anmeldeklassenstufe'])
     }
 
+    print(jahre_dabei)
+
     return jahre_dabei
 
 def get_beendet(beendet):
