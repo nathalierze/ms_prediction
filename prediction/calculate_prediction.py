@@ -15,7 +15,7 @@ intv 6
 """
 def send_to_prediction(satz_ids, data):
     predictions = []
-    
+    print("before historical")
     global df_hisotorical
     df_hisotorical = get_historical_data(data['UserID'])
 
@@ -32,6 +32,8 @@ finds missing fields that are necessary for the predictionmodel, intv 6
 """
 def accumulate_satz_id(id, data):
     data['satzID'] = str(id)
+
+    print("acculuate")
 
     #schwierigkeit
     retrieve = saetze.objects.filter(satzID =id)
@@ -69,11 +71,12 @@ def sendHistoricAndPrediction(data):
     rounded_pred = predict(data)
 
     #sends report to db
-    n = sendReport(data, rounded_pred)
+    n = sendReport(data, rounded_pred, data['satzID'])
 
     return rounded_pred
 
 def predict(data):
+    print("predict")
     engineered_set = feature_engineering(data)
     prediction = get_prediction(engineered_set)
 
@@ -86,11 +89,13 @@ def predict(data):
     return rounded_pred
 
 def get_prediction(engineered_set):
+    print("get prediction")
     clf = pickle.load(open('Decisiontreemodel_3months.pkl', 'rb'))
     predicted = clf.predict_proba(engineered_set)[:,1]  
     return predicted[0]
 
 def feature_engineering(data):
+    print("feature_engineering")
     ft, nt, pruefung, training, version, vt, zt = get_testposition(data["Testposition"])
     HA, Self, HA_nt, HA_vt, HA_zt = get_HA(data["HA"])
     wochentag, ist_schulzeit = get_datetime_fields()
@@ -98,13 +103,15 @@ def feature_engineering(data):
     jahredabei = get_jahre_dabei(data['UserID'])
     beendet = get_beendet(data['beendet'])
 
+    print("engineering")
+    print(data)
     #data['Schussel'],
     dataset = [[data['UserID'], data['UebungsID'], data['satzID'], data['Erstloesung'], 
        data['Schwierigkeit'], data['Art'], data['AufgabenID'], 
        wochentag, ist_schulzeit,data['MehrfachFalsch'], ft, nt,pruefung, training,version, vt, zt,
        beendet, data['Fehler'], HA, Self, HA_nt, HA_vt, HA_zt,
        data['Klassenstufe'], jahredabei, sex_m, sex_w]]
-    
+    print("nearly engineering")
     # 'Schussel',
     df = pd.DataFrame(dataset, columns=['UserID', 'UebungsID', 'satzID', 'Erstloesung',
        'Schwierigkeit', 'Art', 'AufgabenID','Wochentag', 'ist_Schulzeit',
@@ -119,7 +126,7 @@ def feature_engineering(data):
     global df_hisotorical
     result = pd.merge(df, df_hisotorical, on="UserID")
     result = result.drop(columns=['UserID','UebungsID','satzID','AufgabenID','Art'])
-
+    print("end engineering")
     return result
 
 
@@ -168,6 +175,7 @@ def get_historical_data(userID):
     global historical_data
     historical_data = df
 
+    print("done historical")
     return df
 
 def get_testposition(testposition):
@@ -230,19 +238,12 @@ def get_sex(sex):
 def get_jahre_dabei(userID):
     user = schueler.objects.get(pk=userID)
     serializer = SchuelerSerializer(user)
+    try:
+        jahre_dabei = int(serializer.data['Klassenstufe']) - int(serializer.data['Anmeldeklassenstufe'])
+        return jahre_dabei
+    except:
+        return 0
 
-    return 0
-
-    # klassen = ['0','1','2','3','4','5','6','7','8','9','10','11','12','13']
-
-    # if(serializer.data['Klassenstufe'] in klassen & serializer.data['Anmeldeklassenstufe'] in klassen):
-    #     jahre_dabei = int(serializer.data['Klassenstufe']) - int(serializer.data['Anmeldeklassenstufe'])
-    #     print("jahre dabei")
-    #     print(jahre_dabei)
-    #     return jahre_dabei
-    # else:
-    #     print("else")
-    #     return 0
 
 def get_beendet(beendet):
     if(beendet == 'u'):
