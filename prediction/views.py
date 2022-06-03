@@ -16,7 +16,7 @@ from django.core.exceptions import PermissionDenied
 
 class SchuelerViewSet(viewsets.ModelViewSet):
     """
-    API endpoint
+    API endpoint Intervention 6 and 5
     """
     queryset = schueler.objects.all()
     serializer_class = SchuelerSerializer

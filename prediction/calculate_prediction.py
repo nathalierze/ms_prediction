@@ -28,7 +28,7 @@ def send_to_prediction(satz_ids, data):
 
 
 """
-finds missing fields that are necessary for the predictionmodel, intv 6
+finds missing fields that are necessary for the predictionmodel, intv 6 and 5 (?)
 """
 def accumulate_satz_id(id, data):
     data['satzID'] = str(id)
