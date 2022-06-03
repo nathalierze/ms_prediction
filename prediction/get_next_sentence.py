@@ -41,7 +41,7 @@ def next_sentence(data):
     print('---------------')
 
     #sends report to db
-    n = sendReport(data, prediction)
+    n = sendReport(data, prediction, next_sentence_id)
 
 
     return sentence_nr, version_nr, modus
@@ -71,7 +71,7 @@ def get_satz_ids(aufgaben_id, geloeste_saetze, versionline, data):
         choosing_strategy = 0
 
     predictions = send_to_prediction(list_of_ids, data)
-
+    print("come back from file")
     return predictions, choosing_strategy
 
 
