@@ -9,7 +9,7 @@ from rest_framework.renderers import JSONRenderer
 from django.core import serializers
 from .calculate_prediction import send_to_prediction
 import json
-from .savePredictions import sendReport
+from .savePredictions import sendErrorReport, sendReport
 
 def next_sentence(data):
 
@@ -65,10 +65,14 @@ def get_satz_ids(aufgaben_id, geloeste_saetze, versionline, data):
 
     # choosing strategy shows, if the first sentence is calculated or any other sentence
     # important, bc if it is the first sentence, it is not checked if it is over threshold for versioning
-    if(list_of_ids == 9):
+    if(len(list_of_ids) == 9):
         choosing_strategy = 1
     else:
         choosing_strategy = 0
+
+    if(len(list_of_ids) == 0):
+        sendErrorReport()
+        list_of_ids = geloeste_saetze
 
     predictions = send_to_prediction(list_of_ids, data)
     print("come back from file")
