@@ -63,6 +63,11 @@ def get_satz_ids(aufgaben_id, geloeste_saetze, versionline, data):
     # compare lists and keep non-matches
     list_of_ids = set(all_ids_list) - set(geloeste_saetze)
 
+    print("gelosest")
+    print(geloeste_saetze)
+    print("list ids")
+    print(list_of_ids)
+
     # choosing strategy shows, if the first sentence is calculated or any other sentence
     # important, bc if it is the first sentence, it is not checked if it is over threshold for versioning
     if(len(list_of_ids) == 9):
