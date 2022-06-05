@@ -8,7 +8,7 @@ from rest_framework.renderers import JSONRenderer
 from django.core import serializers
 import json
 import random
-from .savePredictions import sendReport
+from .savePredictions import sendReport, sendError2Report
 
 """
 intv 6
@@ -78,7 +78,7 @@ def sendHistoricAndPrediction(data):
 def predict(data):
     print("predict")
     engineered_set = feature_engineering(data)
-    prediction = get_prediction(engineered_set)
+    prediction = get_prediction(engineered_set, data)
 
     print(prediction)
     rounded_pred = round(prediction,4)
@@ -88,11 +88,17 @@ def predict(data):
 
     return rounded_pred
 
-def get_prediction(engineered_set):
+def get_prediction(engineered_set, data):
     print("get prediction")
     clf = pickle.load(open('Decisiontreemodel_3months.pkl', 'rb'))
-    predicted = clf.predict_proba(engineered_set)[:,1]  
-    return predicted[0]
+    try:
+        predicted = clf.predict_proba(engineered_set)[:,1] 
+        return predicted[0] 
+    except:
+        sendError2Report(data)
+        return 0.9209
+
+    
 
 def feature_engineering(data):
     print("feature_engineering")
