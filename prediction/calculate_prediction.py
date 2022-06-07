@@ -9,13 +9,13 @@ from django.core import serializers
 import json
 import random
 from .savePredictions import sendReport, sendError2Report
+import numpy as np
 
 """
 intv 6
 """
 def send_to_prediction(satz_ids, data):
     predictions = []
-    print("before historical")
     global df_hisotorical
     df_hisotorical = get_historical_data(data['UserID'])
 
@@ -32,8 +32,6 @@ finds missing fields that are necessary for the predictionmodel, intv 6 and 5 (?
 """
 def accumulate_satz_id(id, data):
     data['satzID'] = str(id)
-
-    print("acculuate")
 
     #schwierigkeit
     retrieve = saetze.objects.filter(satzID =id)
@@ -76,11 +74,9 @@ def sendHistoricAndPrediction(data):
     return rounded_pred
 
 def predict(data):
-    print("predict")
     engineered_set = feature_engineering(data)
     prediction = get_prediction(engineered_set, data)
 
-    print(prediction)
     rounded_pred = round(prediction,4)
     print(rounded_pred)
     if(rounded_pred<0.1):
@@ -89,35 +85,38 @@ def predict(data):
     return rounded_pred
 
 def get_prediction(engineered_set, data):
-    print("get prediction")
     clf = pickle.load(open('Decisiontreemodel_3months.pkl', 'rb'))
     try:
         predicted = clf.predict_proba(engineered_set)[:,1] 
         return predicted[0] 
     except:
-        sendError2Report(data)
+        print("in except")
+        for f in engineered_set:
+            if(engineered_set[f].dtypes== np.object):
+                wrong = engineered_set[f]
+                print(wrong)
+            else:
+                wrong = 0
+        sendError2Report(data, wrong)
         return 0.9209
 
     
 
 def feature_engineering(data):
-    print("feature_engineering")
     ft, nt, pruefung, training, version, vt, zt = get_testposition(data["Testposition"])
     HA, Self, HA_nt, HA_vt, HA_zt = get_HA(data["HA"])
     wochentag, ist_schulzeit = get_datetime_fields()
     sex_m, sex_w = get_sex(data['Sex'])
     jahredabei = get_jahre_dabei(data['UserID'])
     beendet = get_beendet(data['beendet'])
+    klassenstufe = get_klassenstufe(data['Klassenstufe'])
 
-    print("engineering")
-    print(data)
     #data['Schussel'],
     dataset = [[data['UserID'], data['UebungsID'], data['satzID'], data['Erstloesung'], 
        data['Schwierigkeit'], data['Art'], data['AufgabenID'], 
        wochentag, ist_schulzeit,data['MehrfachFalsch'], ft, nt,pruefung, training,version, vt, zt,
        beendet, data['Fehler'], HA, Self, HA_nt, HA_vt, HA_zt,
-       data['Klassenstufe'], jahredabei, sex_m, sex_w]]
-    print("nearly engineering")
+       klassenstufe, jahredabei, sex_m, sex_w]]
     # 'Schussel',
     df = pd.DataFrame(dataset, columns=['UserID', 'UebungsID', 'satzID', 'Erstloesung',
        'Schwierigkeit', 'Art', 'AufgabenID','Wochentag', 'ist_Schulzeit',
@@ -132,12 +131,10 @@ def feature_engineering(data):
     global df_hisotorical
     result = pd.merge(df, df_hisotorical, on="UserID")
     result = result.drop(columns=['UserID','UebungsID','satzID','AufgabenID','Art'])
-    print("end engineering")
     return result
 
 
 def get_historical_data(userID):
-    print("in historical data")
     #importiert alle satzIDs aus der Kompetenzgruppe
     infile = open('satzIDs.pkl','rb')
     saetze = pickle.load(infile)
@@ -181,8 +178,14 @@ def get_historical_data(userID):
     global historical_data
     historical_data = df
 
-    print("done historical")
     return df
+
+def get_klassenstufe(klassenstufe):
+    try:
+        return int(klassenstufe)
+    except:
+        return 14
+
 
 def get_testposition(testposition):
     ft, nt, pruefung, training, version, vt, zt =0,0,0,0,0,0,0
