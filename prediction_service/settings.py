@@ -91,18 +91,18 @@ WSGI_APPLICATION = 'prediction_service.wsgi.application'
 
 DATABASES = {
     'default': {
-        # 'ENGINE': 'django.db.backends.mysql',
-        # 'NAME': 'orthogra_db1',
-        # 'USER': 'root',
-        # 'PASSWORD':'test',
-        # 'HOST':'host.docker.internal',#'db',#localhost
-        # 'PORT':'3306'
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'orthogra_db1',
-        'USER': 'orthogra_1',
-        'PASSWORD':'mZGK37Gt1cGBmx8F',
-        'HOST':'188.40.29.147',
+        'USER': 'root',
+        'PASSWORD':'test',
+        'HOST':'host.docker.internal',#'db',#localhost
         'PORT':'3306'
+        # 'ENGINE': 'django.db.backends.mysql',
+        # 'NAME': 'orthogra_db1',
+        # 'USER': 'orthogra_1',
+        # 'PASSWORD':'mZGK37Gt1cGBmx8F',
+        # 'HOST':'188.40.29.147',
+        # 'PORT':'3306'
      }
 }
 

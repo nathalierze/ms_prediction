@@ -33,6 +33,7 @@ finds missing fields that are necessary for the predictionmodel, intv 6 and 5 (?
 def accumulate_satz_id(id, data):
     data['satzID'] = str(id)
 
+    print("Acc--------------------------")
     #schwierigkeit
     retrieve = saetze.objects.filter(satzID =id)
     serialized = serializers.serialize("json", retrieve, fields=('Schwierigkeit'))
@@ -42,7 +43,8 @@ def accumulate_satz_id(id, data):
 
     #erstloesung
     #mehrfachfalsch
-    retrieve = xmlsaetze.objects.filter(UebungsID = data['UebungsID'], SatzID = id)
+    retrieve = xmlsaetze.objects.filter(UebungsID = 29709783, SatzID = 872)
+    #retrieve = xmlsaetze.objects.filter(UebungsID = data['UebungsID'], SatzID = id)
     serialized = serializers.serialize("json", retrieve, fields=('Erstloesung','Loesungsnr'))
     sentence = json.loads(serialized)
 
@@ -53,7 +55,14 @@ def accumulate_satz_id(id, data):
     else:
         for x in sentence:
             data['Erstloesung'] = x['fields']['Erstloesung']
-            data['MehrfachFalsch'] = x['fields']['Loesungsnr']
+            mehrfach = x['fields']['Loesungsnr']
+            mehrfach = mehrfach.split()
+            mehrfach = len(mehrfach)
+            mehrfach = int(mehrfach)
+            mehrfach = mehrfach-1
+            data['MehrfachFalsch'] = mehrfach
+            print("Mehrfach")
+            print(mehrfach)
 
     return data
 
