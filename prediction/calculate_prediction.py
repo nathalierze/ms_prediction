@@ -53,15 +53,19 @@ def accumulate_satz_id(id, data):
         data['MehrfachFalsch'] = 0
     else:
         for x in sentence:
-            data['Erstloesung'] = x['fields']['Erstloesung']
-            mehrfach = x['fields']['Loesungsnr']
-            mehrfach = mehrfach.split()
-            mehrfach = len(mehrfach)
-            mehrfach = int(mehrfach)
-            mehrfach = mehrfach-1
-            data['MehrfachFalsch'] = mehrfach
-            print("Mehrfach")
-            print(mehrfach)
+            try:
+                data['Erstloesung'] = x['fields']['Erstloesung']
+                mehrfach = x['fields']['Loesungsnr']
+                mehrfach = mehrfach.split()
+                mehrfach = len(mehrfach)
+                mehrfach = int(mehrfach)
+                mehrfach = mehrfach-1
+                data['MehrfachFalsch'] = mehrfach
+                print("Mehrfach")
+                print(mehrfach)
+            except:
+                data['MehrfachFalsch']=0
+                sendError2Report(data, "error4")
 
     return data
 
