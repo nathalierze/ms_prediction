@@ -43,8 +43,7 @@ def accumulate_satz_id(id, data):
 
     #erstloesung
     #mehrfachfalsch
-    retrieve = xmlsaetze.objects.filter(UebungsID = 29709783, SatzID = 872)
-    #retrieve = xmlsaetze.objects.filter(UebungsID = data['UebungsID'], SatzID = id)
+    retrieve = xmlsaetze.objects.filter(UebungsID = data['UebungsID'], SatzID = id)
     serialized = serializers.serialize("json", retrieve, fields=('Erstloesung','Loesungsnr'))
     sentence = json.loads(serialized)
 
