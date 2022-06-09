@@ -23,7 +23,7 @@ class SchuelerViewSet(viewsets.ModelViewSet):
     authentication_classes = [authentication.SessionAuthentication, TokenAuthentication]
     permission_classes = [permissions.IsAuthenticated]
 
-    def get_next_sentence(self, request, pk):
+    def get_next_sentence(self, request, pk):        
         next = next_sentence(request.data)
         return Response(next)
     
