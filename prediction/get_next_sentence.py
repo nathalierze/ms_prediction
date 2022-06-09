@@ -1,4 +1,5 @@
 from ensurepip import version
+from operator import mod
 from .models import schueler, xmlsaetze, saetze
 import pandas as pd
 import numpy as np
@@ -24,11 +25,17 @@ def next_sentence(data):
     print('----')
 
     if(seq_mode == "normal"):
-        predictions, choosing_strategy = get_satz_ids(aufgaben_id, geloeste_saetze, versionline, data)
-        next_sentence_id, modus, prediction = choose_next_sentence(predictions, choosing_strategy, aufgaben_id, versionline, geloeste_saetze, data)
+        predictions, choosing_strategy, pruefung = get_satz_ids(aufgaben_id, geloeste_saetze, versionline, data)
+        if(pruefung==1):
+            next_sentence_id, modus, prediction = 872,'pruefung',9.000
+        else:
+            next_sentence_id, modus, prediction = choose_next_sentence(predictions, choosing_strategy, aufgaben_id, versionline, geloeste_saetze, data)
     elif(seq_mode =="onlyBaseline"):
-        predictions, choosing_strategy = get_satz_ids(aufgaben_id, geloeste_saetze, versionline, data)
-        next_sentence_id, modus, prediction = choose_next_sentence(predictions, 1, aufgaben_id, versionline, geloeste_saetze, data)
+        predictions, choosing_strategy, pruefung = get_satz_ids(aufgaben_id, geloeste_saetze, versionline, data)
+        if(pruefung==1):
+            next_sentence_id, modus, prediction = 872,'pruefung',9.000
+        else:
+            next_sentence_id, modus, prediction = choose_next_sentence(predictions, 1, aufgaben_id, versionline, geloeste_saetze, data)
     elif(seq_mode== "onlyVersion"):
         next_sentence_id, modus, prediction = get_version_sentence(aufgaben_id, versionline, geloeste_saetze, data)        
 
@@ -68,19 +75,25 @@ def get_satz_ids(aufgaben_id, geloeste_saetze, versionline, data):
     print("list ids")
     print(list_of_ids)
 
-    # choosing strategy shows, if the first sentence is calculated or any other sentence
-    # important, bc if it is the first sentence, it is not checked if it is over threshold for versioning
-    if(len(list_of_ids) == 9):
-        choosing_strategy = 1
-    else:
-        choosing_strategy = 0
-
     if(len(list_of_ids) == 0):
         sendErrorReport(data)
         list_of_ids = geloeste_saetze
+        predictions = send_to_prediction(list_of_ids, data)
+        return predictions, 1, 1
+    # choosing strategy shows, if the first sentence is calculated or any other sentence
+    # important, bc if it is the first sentence, it is not checked if it is over threshold for versioning
+    elif(len(list_of_ids) == 9):
+        choosing_strategy = 1
+        predictions = send_to_prediction(list_of_ids, data)
+        return predictions, choosing_strategy, 0
+    else:
+        choosing_strategy = 0
+        predictions = send_to_prediction(list_of_ids, data)
+        return predictions, choosing_strategy, 0
 
-    predictions = send_to_prediction(list_of_ids, data)
-    return predictions, choosing_strategy
+    
+
+    
 
 
 """

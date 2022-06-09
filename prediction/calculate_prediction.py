@@ -102,14 +102,7 @@ def get_prediction(engineered_set, data):
         predicted = clf.predict_proba(engineered_set)[:,1] 
         return predicted[0] 
     except:
-        print("in except")
-        for f in engineered_set:
-            if(engineered_set[f].dtypes== np.object):
-                wrong = engineered_set[f]
-                print(wrong)
-            else:
-                wrong = 0
-        sendError2Report(data, wrong)
+        sendError2Report(data, 'error2')
         return 0.9209
 
     
