@@ -250,9 +250,9 @@ def get_sex(sex):
     return sex_m, sex_w
 
 def get_jahre_dabei(userID):
-    user = schueler.objects.get(pk=userID)
-    serializer = SchuelerSerializer(user)
     try:
+        user = schueler.objects.get(pk=userID)
+        serializer = SchuelerSerializer(user)
         jahre_dabei = int(serializer.data['Klassenstufe']) - int(serializer.data['Anmeldeklassenstufe'])
         return jahre_dabei
     except:
