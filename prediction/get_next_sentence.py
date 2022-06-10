@@ -10,6 +10,7 @@ from rest_framework.renderers import JSONRenderer
 from django.core import serializers
 from .calculate_prediction import send_to_prediction
 import json
+import random
 from .savePredictions import sendError2Report, sendErrorReport, sendReport
 
 def next_sentence(data):
@@ -27,15 +28,13 @@ def next_sentence(data):
     if(seq_mode == "normal"):
         predictions, choosing_strategy, pruefung = get_satz_ids(aufgaben_id, geloeste_saetze, versionline, data)
         if(pruefung==1):
-            next_sentence_id, modus, prediction = 872,'pruefung',9.000
-            sendError2Report(data,'error5')
+            next_sentence_id, modus, prediction = 0000,'pruefung',9.000
         else:
             next_sentence_id, modus, prediction = choose_next_sentence(predictions, choosing_strategy, aufgaben_id, versionline, geloeste_saetze, data)
     elif(seq_mode =="onlyBaseline"):
         predictions, choosing_strategy, pruefung = get_satz_ids(aufgaben_id, geloeste_saetze, versionline, data)
         if(pruefung==1):
-            next_sentence_id, modus, prediction = 872,'pruefung',9.000
-            sendError2Report(data,'error5')
+            next_sentence_id, modus, prediction = 1000,'pruefung',9.000
         else:
             next_sentence_id, modus, prediction = choose_next_sentence(predictions, 1, aufgaben_id, versionline, geloeste_saetze, data)
     elif(seq_mode== "onlyVersion"):
@@ -145,24 +144,42 @@ def get_version_sentence(aufgaben_id, versionline, geloeste_saetze, data):
 
     if(len(list_of_ids) >0):
         predictions = send_to_prediction(list_of_ids, data)
+        array_of_max = np.argmax(predictions, axis=0)  # return list of max value in list.
+        index_of_max = array_of_max[1]
+
+        id = predictions[index_of_max][0]
+        val = predictions[index_of_max][1]
+
+        print("version line")
+        print("choosen value")
+        print(val)
+        print("id of highest value")
+        print(id)
+        print('-----')
+
+        return id, 'version', val
     else:
         print('allversions up')
+        #if all versions up, we choose a random id from the max values -> otherwise it will be displayed the same sentence
         predictions = send_to_prediction(all_ids_list, data)
+        array_of_max = np.argmax(predictions, axis=0)  # return list of max value in list.
+        get_length =len(array_of_max)
+        rand = random.randint(0, get_length-1)
+        index_of_max = array_of_max[rand]
 
-    array_of_max = np.argmax(predictions, axis=0)  # return list of max value in list.
-    index_of_max = array_of_max[1]
+        id = predictions[index_of_max][0]
+        val = predictions[index_of_max][1]
 
-    id = predictions[index_of_max][0]
-    val = predictions[index_of_max][1]
+        print("version line")
+        print("choosen value")
+        print(val)
+        print("id of highest value")
+        print(id)
+        print('-----')
 
-    print("version line")
-    print("choosen value")
-    print(val)
-    print("id of highest value")
-    print(id)
-    print('-----')
+        return id, 'version', val
 
-    return id, 'version', val
+    
 
 """
 Retrieves sentence_nr and version_nr from Satz ID
