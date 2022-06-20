@@ -186,11 +186,14 @@ def get_version_sentence(aufgaben_id, versionline, geloeste_saetze, data):
 Retrieves sentence_nr and version_nr from Satz ID
 """
 def get_sentence_nr_from_id(id):
-    retrieve = saetze.objects.filter(satzID =id)
-    serialized = serializers.serialize("json", retrieve, fields=('Satznr','Versionsnr'))
-    sentence = json.loads(serialized) # this is a list of dict
-    for x in sentence:
-        satz_nr = x['fields']['Satznr']
-        version_nr = x['fields']['Versionsnr']
+    try:
+        retrieve = saetze.objects.filter(satzID =id)
+        serialized = serializers.serialize("json", retrieve, fields=('Satznr','Versionsnr'))
+        sentence = json.loads(serialized) # this is a list of dict
+        for x in sentence:
+            satz_nr = x['fields']['Satznr']
+            version_nr = x['fields']['Versionsnr']
 
-    return satz_nr, version_nr
+        return satz_nr, version_nr
+    except:
+        return 0,0
