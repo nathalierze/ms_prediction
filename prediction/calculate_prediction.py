@@ -81,7 +81,7 @@ def sendHistoricAndPrediction(data):
     rounded_pred = predict(data)
 
     #sends report to db
-    n = sendReport(data, rounded_pred, data['satzID'])
+    n = sendReport(data, rounded_pred, data['satzID'], 'intv5')
 
     return rounded_pred
 
