@@ -50,7 +50,7 @@ def next_sentence(data):
     print('---------------')
 
     #sends report to db
-    n = sendReport(data, prediction, next_sentence_id)
+    n = sendReport(data, prediction, next_sentence_id, modus)
 
 
     return sentence_nr, version_nr, modus
