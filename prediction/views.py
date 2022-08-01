@@ -14,10 +14,10 @@ from rest_framework.permissions import IsAuthenticated
 from prediction_service.authentication import TokenAuthentication
 from django.core.exceptions import PermissionDenied
 
+"""
+API endpoint Intervention 6 and 5
+"""
 class SchuelerViewSet(viewsets.ModelViewSet):
-    """
-    API endpoint Intervention 6 and 5
-    """
     queryset = schueler.objects.all()
     serializer_class = SchuelerSerializer
     authentication_classes = [authentication.SessionAuthentication, TokenAuthentication]
@@ -26,12 +26,11 @@ class SchuelerViewSet(viewsets.ModelViewSet):
     def get_next_sentence(self, request, pk):        
         next = next_sentence(request.data)
         return Response(next)
-    
 
+"""
+API endpoint Intervention 2 to 4
+"""
 class SitzungssummaryViewSet(viewsets.ModelViewSet):
-    """
-    API endpoint
-    """
     queryset = sitzungssummary.objects.all()
     serializer_class = SchuelerSerializer
     authentication_classes = [authentication.SessionAuthentication, TokenAuthentication]
@@ -40,8 +39,6 @@ class SitzungssummaryViewSet(viewsets.ModelViewSet):
     def get_prediction(self, request, pk):
         try:
             #auth = schueler.objects.get(Loginname = request.headers['Username'])
-
-            print(pk)
             prediction = sendHistoricAndPrediction(request.data)
 
             return Response(prediction)

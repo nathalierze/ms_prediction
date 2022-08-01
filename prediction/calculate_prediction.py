@@ -12,7 +12,7 @@ from .savePredictions import sendReport, sendError2Report
 import numpy as np
 
 """
-intv 6
+intv 5 and 6
 """
 def send_to_prediction(satz_ids, data):
     predictions = []
@@ -28,27 +28,23 @@ def send_to_prediction(satz_ids, data):
 
 
 """
-finds missing fields that are necessary for the predictionmodel, intv 6 and 5 (?)
+intv 6 and 5 
+finds missing fields that are necessary for the predictionmodel
 """
 def accumulate_satz_id(id, data):
-    data['satzID'] = str(id)
-
     print("Acc--------------------------")
-    #schwierigkeit
+    data['satzID'] = str(id)
     retrieve = saetze.objects.filter(satzID =id)
     serialized = serializers.serialize("json", retrieve, fields=('Schwierigkeit'))
     sentence = json.loads(serialized) # this is a list of dict
     for x in sentence:
         data['Schwierigkeit'] = x['fields']['Schwierigkeit']
 
-    #erstloesung
-    #mehrfachfalsch
     retrieve = xmlsaetze.objects.filter(UebungsID = data['UebungsID'], SatzID = id)
     serialized = serializers.serialize("json", retrieve, fields=('Erstloesung','Loesungsnr'))
     sentence = json.loads(serialized)
 
     if not sentence:
-        # list is empty
         data['Erstloesung'] = 1
         data['MehrfachFalsch'] = 0
     else:
@@ -61,34 +57,32 @@ def accumulate_satz_id(id, data):
                 mehrfach = int(mehrfach)
                 mehrfach = mehrfach-1
                 data['MehrfachFalsch'] = mehrfach
-                print("Mehrfach")
-                print(mehrfach)
             except:
                 data['MehrfachFalsch']=0
                 sendError2Report(data, "error4")
-
     return data
 
 """
-wird aufgerufen in view get_prediction
+intv 2 to 4
+feature engineering and prediction
+called by view get_prediction
 """
 def sendHistoricAndPrediction(data):
     global df_hisotorical
     df_hisotorical = get_historical_data(data['UserID'])
-
     data['seqMode'] = 0
     data['versionline'] = 0
     rounded_pred = predict(data)
-
-    #sends report to db
     n = sendReport(data, rounded_pred, data['satzID'], 'intv5')
 
     return rounded_pred
 
+"""
+call feature engineering, get prediction and return it
+"""
 def predict(data):
     engineered_set = feature_engineering(data)
     prediction = get_prediction(engineered_set, data)
-
     rounded_pred = round(prediction,4)
     print(rounded_pred)
     if(rounded_pred<0.1):
@@ -96,6 +90,9 @@ def predict(data):
 
     return rounded_pred
 
+"""
+import predefined prediction model and predict on engineered set
+"""
 def get_prediction(engineered_set, data):
     clf = pickle.load(open('Decisiontreemodel_3months.pkl', 'rb'))
     try:
@@ -103,10 +100,12 @@ def get_prediction(engineered_set, data):
         return predicted[0] 
     except:
         sendError2Report(data, 'error2')
-        return 0.9209
+        return 0.9209 # value is not used
 
-    
-
+"""
+Feature engineering of data
+Merge data with historical data
+"""
 def feature_engineering(data):
     ft, nt, pruefung, training, version, vt, zt = get_testposition(data["Testposition"])
     HA, Self, HA_nt, HA_vt, HA_zt = get_HA(data["HA"])
@@ -116,13 +115,12 @@ def feature_engineering(data):
     beendet = get_beendet(data['beendet'])
     klassenstufe = get_klassenstufe(data['Klassenstufe'])
 
-    #data['Schussel'],
     dataset = [[data['UserID'], data['UebungsID'], data['satzID'], data['Erstloesung'], 
        data['Schwierigkeit'], data['Art'], data['AufgabenID'], 
        wochentag, ist_schulzeit,data['MehrfachFalsch'], ft, nt,pruefung, training,version, vt, zt,
        beendet, data['Fehler'], HA, Self, HA_nt, HA_vt, HA_zt,
        klassenstufe, jahredabei, sex_m, sex_w]]
-    # 'Schussel',
+
     df = pd.DataFrame(dataset, columns=['UserID', 'UebungsID', 'satzID', 'Erstloesung',
        'Schwierigkeit', 'Art', 'AufgabenID','Wochentag', 'ist_Schulzeit',
        'MehrfachFalsch', 'Testposition__FT', 'Testposition__nt',
@@ -131,7 +129,6 @@ def feature_engineering(data):
        'beendet', 'Fehler', 'HA__HA', 'HA__Self', 'HA__nt', 'HA__vt', 'HA__zt',
        'Klassenstufe', 'Jahredabei', 'Sex__m', 'Sex__w'])
 
-
     #merge data with historical data
     global df_hisotorical
     result = pd.merge(df, df_hisotorical, on="UserID")
@@ -139,21 +136,25 @@ def feature_engineering(data):
     return result
 
 
+"""
+Get historical data from user ID
+"""
 def get_historical_data(userID):
-    #importiert alle satzIDs aus der Kompetenzgruppe
+    # import satz ID
     infile = open('satzIDs.pkl','rb')
     saetze = pickle.load(infile)
     infile.close()
     satz_ID_list = list(saetze.satzID)
     satz_ID_list = [str(item) for item in satz_ID_list]
     indexlist = [userID]
-    # baut DF mit nur null values
+
+    # create emtpy DF
     df = pd.DataFrame(0, index =indexlist,columns =satz_ID_list)
 
-    #get xmlsaetze by userID
+    # get xmlsaetze by userID
     retrieve = xmlsaetze.objects.filter(UserID=userID)
     data = serializers.serialize("json", retrieve, fields=('SatzID','Erfolg','Datum'))
-    struct = json.loads(data) # this is a list of dict
+    struct = json.loads(data) 
     df_obj = pd.DataFrame(columns=['SatzID', 'Erfolg','Datum'])
     for x in struct:
         satz_ID = x['fields']['SatzID']
@@ -185,13 +186,18 @@ def get_historical_data(userID):
 
     return df
 
+"""
+error catching of feature klassenstufe
+"""
 def get_klassenstufe(klassenstufe):
     try:
         return int(klassenstufe)
     except:
         return 14
 
-
+"""
+one hot encoding of feature testposition
+"""
 def get_testposition(testposition):
     ft, nt, pruefung, training, version, vt, zt =0,0,0,0,0,0,0
 
@@ -212,6 +218,9 @@ def get_testposition(testposition):
 
     return ft, nt, pruefung, training, version, vt, zt
 
+"""
+one hot encoding of feature HA
+"""
 def get_HA(HA_):
     HA,Self,HA_nt, HA_vt, HA_zt =0,0,0,0,0
     if(HA_=="HA"):
@@ -227,6 +236,9 @@ def get_HA(HA_):
 
     return HA, Self, HA_nt, HA_vt, HA_zt
 
+"""
+calculation of feature wochentag, ist schulzeit
+"""
 def get_datetime_fields():
     wochentag = datetime.datetime.today().weekday()
     now = datetime.datetime.now()
@@ -240,6 +252,9 @@ def get_datetime_fields():
 
     return wochentag, ist_schulzeit
 
+"""
+one hot encoding of feature sex
+"""
 def get_sex(sex):
     sex_m,sex_w = 0,0
     if(sex=="w"):
@@ -249,6 +264,9 @@ def get_sex(sex):
 
     return sex_m, sex_w
 
+"""
+calculation of feature jahre dabei
+"""
 def get_jahre_dabei(userID):
     try:
         user = schueler.objects.get(pk=userID)
@@ -258,7 +276,9 @@ def get_jahre_dabei(userID):
     except:
         return 0
 
-
+"""
+one hot encoding of feature beendet
+"""
 def get_beendet(beendet):
     if(beendet == 'u'):
         return 0
