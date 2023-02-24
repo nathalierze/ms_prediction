@@ -11,7 +11,7 @@ from django.core import serializers
 from .calculate_prediction import send_to_prediction
 import json
 import random
-from .savePredictions import sendError2Report, sendErrorReport, sendReport
+from .savePredictions import sendErrorReport, sendReport
 
 def next_sentence(data):
     """

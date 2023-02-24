@@ -8,15 +8,16 @@ from rest_framework.renderers import JSONRenderer
 from django.core import serializers
 import json
 import random
-from .savePredictions import sendReport, sendError2Report
+from .savePredictions import sendReport, sendErrorReport
 import numpy as np
 
-"""
-intv 5 and 6
-"""
-
-
 def send_to_prediction(satz_ids, data):
+    """
+    intv 5 and 6
+    :param satz_ids: ids from sentences that must be predicted
+    :param data: data set 
+    :results: prediction results
+    """
     predictions = []
     global df_hisotorical
     df_hisotorical = get_historical_data(data["UserID"])
@@ -28,15 +29,14 @@ def send_to_prediction(satz_ids, data):
 
     return predictions
 
-
-"""
-intv 6 and 5 
-finds missing fields that are necessary for the predictionmodel
-"""
-
-
 def accumulate_satz_id(id, data):
-    print("Acc--------------------------")
+    """
+    intv 6 and 5 
+    finds missing fields that are necessary for the predictionmodel
+    :param id: sentence id from the sentence to be predicted
+    :param data: data set
+    :return: full data set to be able to predict result
+    """
     data["satzID"] = str(id)
     retrieve = saetze.objects.filter(satzID=id)
     serialized = serializers.serialize("json", retrieve, fields=("Schwierigkeit"))
@@ -65,18 +65,18 @@ def accumulate_satz_id(id, data):
                 data["MehrfachFalsch"] = mehrfach
             except:
                 data["MehrfachFalsch"] = 0
-                sendError2Report(data, "error4")
+                sendErrorReport(data, "error4")
     return data
 
 
-"""
-intv 2 to 4
-feature engineering and prediction
-called by view get_prediction
-"""
-
-
 def sendHistoricAndPrediction(data):
+    """
+    intv 2 to 4
+    feature engineering and prediction
+    called by view get_prediction
+    :param data: data set
+    :return: rounded prediction result
+    """
     global df_hisotorical
     df_hisotorical = get_historical_data(data["UserID"])
     data["seqMode"] = 0
@@ -87,12 +87,12 @@ def sendHistoricAndPrediction(data):
     return rounded_pred
 
 
-"""
-call feature engineering, get prediction and return it
-"""
-
-
 def predict(data):
+    """
+    call feature engineering, get prediction and return it
+    :param data: data set
+    :result rounded_pred: rounded prediction results 
+    """
     engineered_set = feature_engineering(data)
     prediction = get_prediction(engineered_set, data)
     rounded_pred = round(prediction, 4)
@@ -102,29 +102,29 @@ def predict(data):
 
     return rounded_pred
 
-
-"""
-import predefined prediction model and predict on engineered set
-"""
-
-
 def get_prediction(engineered_set, data):
+    """
+    import predefined prediction model and predict on engineered set
+    :param engineered_set: data frame
+    :param data: data to send to error messaging
+    :return: prediction result
+    """
     clf = pickle.load(open("Decisiontreemodel_3months.pkl", "rb"))
     try:
         predicted = clf.predict_proba(engineered_set)[:, 1]
         return predicted[0]
     except:
-        sendError2Report(data, "error2")
+        sendErrorReport(data, "error2")
         return 0.9209  # value is not used
 
 
-"""
-Feature engineering of data
-Merge data with historical data
-"""
-
-
 def feature_engineering(data):
+    """
+    Feature engineering of data
+    Merge data with historical data
+    :param: data
+    :return: data featured engineered and merged with historical data
+    """
     ft, nt, pruefung, training, version, vt, zt = get_testposition(data["Testposition"])
     HA, Self, HA_nt, HA_vt, HA_zt = get_HA(data["HA"])
     wochentag, ist_schulzeit = get_datetime_fields()
@@ -207,12 +207,13 @@ def feature_engineering(data):
     return result
 
 
-"""
-Get historical data from user ID
-"""
-
-
 def get_historical_data(userID):
+    """
+    Get historical data from user ID
+    :param userID: user ID
+    :return: data from with historical data
+    """
+
     # import satz ID
     infile = open("satzIDs.pkl", "rb")
     saetze = pickle.load(infile)
@@ -261,25 +262,20 @@ def get_historical_data(userID):
 
     return df
 
-
-"""
-error catching of feature klassenstufe
-"""
-
-
 def get_klassenstufe(klassenstufe):
+    """
+    try catch of feature klassenstufe
+    """
     try:
         return int(klassenstufe)
     except:
         return 14
 
 
-"""
-one hot encoding of feature testposition
-"""
-
-
 def get_testposition(testposition):
+    """
+    one hot encoding of feature testposition
+    """
     ft, nt, pruefung, training, version, vt, zt = 0, 0, 0, 0, 0, 0, 0
 
     if testposition == "ft":
@@ -300,12 +296,10 @@ def get_testposition(testposition):
     return ft, nt, pruefung, training, version, vt, zt
 
 
-"""
-one hot encoding of feature HA
-"""
-
-
 def get_HA(HA_):
+    """
+    one hot encoding of feature HA
+    """
     HA, Self, HA_nt, HA_vt, HA_zt = 0, 0, 0, 0, 0
     if HA_ == "HA":
         HA = 1
@@ -320,12 +314,11 @@ def get_HA(HA_):
 
     return HA, Self, HA_nt, HA_vt, HA_zt
 
-"""
-calculation of feature wochentag, ist schulzeit
-"""
-
-
 def get_datetime_fields():
+    """
+    calculation of feature wochentag, ist schulzeit
+    :return: weekday, 1 if school time
+    """
     wochentag = datetime.datetime.today().weekday()
     now = datetime.datetime.now()
 
@@ -338,13 +331,10 @@ def get_datetime_fields():
 
     return wochentag, ist_schulzeit
 
-
-"""
-one hot encoding of feature sex
-"""
-
-
 def get_sex(sex):
+    """
+    one hot encoding of feature sex
+    """
     sex_m, sex_w = 0, 0
     if sex == "w":
         sex_w = 1
@@ -353,13 +343,12 @@ def get_sex(sex):
 
     return sex_m, sex_w
 
-
-"""
-calculation of feature jahre dabei
-"""
-
-
 def get_jahre_dabei(userID):
+    """
+    calculation of feature jahre dabei
+    :param userID: userID
+    :return: jahre_dabei
+    """
     try:
         user = schueler.objects.get(pk=userID)
         serializer = SchuelerSerializer(user)
@@ -370,13 +359,12 @@ def get_jahre_dabei(userID):
     except:
         return 0
 
-
-"""
-one hot encoding of feature beendet
-"""
-
-
 def get_beendet(beendet):
+    """
+    one hot encoding of feature beendet
+    :param beendet: feature beendet
+    :return: binary indicating u or b
+    """
     if beendet == "u":
         return 0
     elif beendet == "b":
