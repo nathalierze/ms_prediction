@@ -4,15 +4,15 @@ from django.db import models
 
 class predictions(models.Model):
     class Meta:
-        db_table = 'predictions'
+        db_table = "predictions"
 
     UebungsID = models.IntegerField(blank=True)
     SatzID = models.IntegerField(blank=True)
     UserID = models.IntegerField(blank=True)
-    interventiongroup = models.CharField(max_length=10,blank=True)
+    interventiongroup = models.CharField(max_length=10, blank=True)
     prediction = models.FloatField(blank=True)
-    seqMode = models.CharField(max_length=20,blank=True)
-    modus = models.CharField(max_length=20,blank=True)
+    seqMode = models.CharField(max_length=20, blank=True)
+    modus = models.CharField(max_length=20, blank=True)
     versionline = models.IntegerField(blank=True)
     version = models.IntegerField(blank=True)
     Datum = models.DateTimeField(blank=True)
@@ -20,23 +20,24 @@ class predictions(models.Model):
     def __str__(self) -> str:
         return super().__str__()
 
+
 class xmlsaetze(models.Model):
     class Meta:
-        db_table = 'xmlsaetze'
+        db_table = "xmlsaetze"
 
     UserID = models.IntegerField(blank=True)
     UebungsID = models.IntegerField(blank=True)
-    UserAttribut= models.CharField(max_length=7, blank=True )
-    Testart= models.CharField(max_length=10, blank=True )
-    Testposition= models.CharField(max_length=10, blank=True )
+    UserAttribut = models.CharField(max_length=7, blank=True)
+    Testart = models.CharField(max_length=10, blank=True)
+    Testposition = models.CharField(max_length=10, blank=True)
     SatzID = models.IntegerField(blank=True)
     Erstloesung = models.SmallIntegerField(blank=True)
-    Schussel= models.IntegerField(blank=True)
-    KorrekturBenutzt= models.IntegerField(blank=True )
+    Schussel = models.IntegerField(blank=True)
+    KorrekturBenutzt = models.IntegerField(blank=True)
     Datum = models.DateTimeField(blank=True)
     Erfolg = models.BooleanField(blank=True)
     XMLstring = models.TextField(blank=True)
-    Loesungsnr= models.CharField(max_length=60, blank=True )
+    Loesungsnr = models.CharField(max_length=60, blank=True)
 
     def __str__(self) -> str:
         return super().__str__()
@@ -44,37 +45,38 @@ class xmlsaetze(models.Model):
 
 class schueler(models.Model):
     class Meta:
-        db_table = 'schueler'
+        db_table = "schueler"
 
     ID = models.IntegerField(primary_key=True)
-    Name = models.CharField(max_length=30, blank=True )
-    Passwort_express = models.CharField(max_length=32, blank=True )
-    Email = models.CharField(max_length=40, blank=True )
-    Loginname = models.CharField(max_length=60, blank=True )
-    Passwort = models.IntegerField(blank=True )
-    SessionID = models.CharField(max_length=32, blank=True )
-    Lehrername = models.CharField(max_length=30, blank=True )
+    Name = models.CharField(max_length=30, blank=True)
+    Passwort_express = models.CharField(max_length=32, blank=True)
+    Email = models.CharField(max_length=40, blank=True)
+    Loginname = models.CharField(max_length=60, blank=True)
+    Passwort = models.IntegerField(blank=True)
+    SessionID = models.CharField(max_length=32, blank=True)
+    Lehrername = models.CharField(max_length=30, blank=True)
     LehrerID = models.IntegerField(blank=True)
-    Klassenname = models.CharField(max_length=30, blank=True )
-    Geschlecht = models.CharField(max_length=20, blank=True )
-    Klassenstufe = models.CharField(max_length=20, blank=True )
+    Klassenname = models.CharField(max_length=30, blank=True)
+    Geschlecht = models.CharField(max_length=20, blank=True)
+    Klassenstufe = models.CharField(max_length=20, blank=True)
     Anmeldedatum = models.IntegerField(blank=True)
-    Anmeldeklassenstufe = models.CharField(max_length=30, blank=True )
-    Altklasse = models.CharField(max_length=30, blank=True )
-    gesperrt = models.CharField(max_length=30, blank=True )
-    Aufgaben = models.CharField(max_length=300, blank=True )
-    Altaufgaben = models.CharField(max_length=600, blank=True )
+    Anmeldeklassenstufe = models.CharField(max_length=30, blank=True)
+    Altklasse = models.CharField(max_length=30, blank=True)
+    gesperrt = models.CharField(max_length=30, blank=True)
+    Aufgaben = models.CharField(max_length=300, blank=True)
+    Altaufgaben = models.CharField(max_length=600, blank=True)
     done = models.IntegerField(blank=True)
-    Info = models.CharField(max_length=60, blank=True )
+    Info = models.CharField(max_length=60, blank=True)
     interventiongroup = models.CharField(max_length=10, blank=True)
 
     def __str__(self) -> str:
         return super().__str__()
 
+
 class sitzungssummary(models.Model):
     class Meta:
-        db_table = 'sitzungssummary'
-    
+        db_table = "sitzungssummary"
+
     ID = models.IntegerField(primary_key=True)
     UserID = models.IntegerField()
     UserAttribut = models.CharField(max_length=7)
@@ -93,9 +95,10 @@ class sitzungssummary(models.Model):
     def __str__(self) -> str:
         return super().__str__()
 
+
 class gast(models.Model):
-    class Meta: 
-        db_table = 'gaeste'
+    class Meta:
+        db_table = "gaeste"
 
     ID = models.IntegerField(primary_key=True)
     Name = models.CharField(max_length=30)
@@ -121,8 +124,8 @@ class gast(models.Model):
 
 
 class saetze(models.Model):
-    class Meta: 
-        db_table = 'saetze'
+    class Meta:
+        db_table = "saetze"
 
     satzID = models.IntegerField(primary_key=True)
     AufgabenID = models.IntegerField(blank=True)

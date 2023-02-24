@@ -1,7 +1,5 @@
 from copyreg import pickle
 from django.shortcuts import render
-
-# Create your views here.
 from rest_framework import viewsets, status, permissions, authentication
 from rest_framework.response import Response
 from .models import predictions, schueler, sitzungssummary, gast
@@ -14,33 +12,44 @@ from rest_framework.permissions import IsAuthenticated
 from prediction_service.authentication import TokenAuthentication
 from django.core.exceptions import PermissionDenied
 
-"""
-API endpoint Intervention 6 and 5
-"""
 class SchuelerViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint Intervention 6 and 5
+    """
     queryset = schueler.objects.all()
     serializer_class = SchuelerSerializer
     authentication_classes = [authentication.SessionAuthentication, TokenAuthentication]
     permission_classes = [permissions.IsAuthenticated]
 
-    def get_next_sentence(self, request, pk):        
+    def get_next_sentence(self, request, pk):
+        """
+        calls method to determine next sentence
+        :param request: data array with information about user, session
+        :return: returns the next sentence_nr, version_nr, modus
+        """
         next = next_sentence(request.data)
         return Response(next)
 
-"""
-API endpoint Intervention 2 to 4
-"""
+
 class SitzungssummaryViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint Intervention 2 to 4
+    """
     queryset = sitzungssummary.objects.all()
     serializer_class = SchuelerSerializer
     authentication_classes = [authentication.SessionAuthentication, TokenAuthentication]
     permission_classes = [permissions.IsAuthenticated]
 
     def get_prediction(self, request, pk):
+        """
+        calls method to calculate solution probability
+        :param request: data array with information about user, session
+        :return: prediction result
+        """
         try:
-            auth = schueler.objects.get(Loginname = request.headers['Username'])
+            auth = schueler.objects.get(Loginname=request.headers["Username"])
             prediction = sendHistoricAndPrediction(request.data)
 
             return Response(prediction)
         except schueler.DoesNotExist:
-            raise PermissionDenied() 
+            raise PermissionDenied()

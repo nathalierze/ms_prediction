@@ -13,12 +13,12 @@ import json
 import random
 from .savePredictions import sendError2Report, sendErrorReport, sendReport
 
-"""
-manages if conditions to find out what sentences should be predicted
-"""
-
-
 def next_sentence(data):
+    """
+    manages if conditions to find out what sentences should be predicted
+    :param data: data array with information about user, session
+    :return: sentence_nr, version_nr, modus
+    """
     aufgaben_id = data["AufgabenID"]
     geloeste_saetze = data["geloesteSaetze"]
     versionline = data["versionline"]
@@ -57,17 +57,22 @@ def next_sentence(data):
         )
 
     sentence_nr, version_nr = get_sentence_nr_from_id(next_sentence_id)
-    n = sendReport(data, prediction, next_sentence_id, modus)
+    sendReport(data, prediction, next_sentence_id, modus)
 
     return sentence_nr, version_nr, modus
 
 
-"""
-takes aufgaben_id, geloeste_saetze and versionline
-returns choosing strategy and list_of_ids to predict
-"""
-
 def get_satz_ids(aufgaben_id, geloeste_saetze, versionline, data, error_function):
+    """
+    takes aufgaben_id, geloeste_saetze and versionline
+    returns choosing strategy and list_of_ids to predict
+    :param aufgaben_id: exercise id
+    :param geloeste_saetze: array with sentences already solved
+    :param versionline: versionline the user is in 
+    :param data: data array with information about user, session
+    :param error_function: specifies where the call came from
+    :return: prediction, choosing strategy, int that indicates if the test phase should start
+    """
     # get all SatzIDs from AufgabenID
     retrieve = saetze.objects.filter(AufgabenID=aufgaben_id, Versionsnr=versionline)
     serialized = serializers.serialize("json", retrieve, fields=("AufgabenID"))
@@ -99,14 +104,13 @@ def get_satz_ids(aufgaben_id, geloeste_saetze, versionline, data, error_function
         return predictions, choosing_strategy, 0
 
 
-"""
-chooses from predictions the sentence with max p and checkes if it is below threshold
-"""
-
-
 def choose_next_sentence(
     predictions, choosing_strategy, aufgaben_id, versionline, geloeste_saetze, data
 ):
+    """
+    chooses from predictions the sentence with max p and checkes if it is below threshold
+    :return: sentence id, phase, value of prediction
+    """
     array_of_max = np.argmax(predictions, axis=0)  # return list of max value in list
     index_of_max = array_of_max[1]
 
@@ -126,12 +130,15 @@ def choose_next_sentence(
             return get_version_sentence(aufgaben_id, versionline, geloeste_saetze, data)
 
 
-"""
-if p is <50%, all version sentences are retrieved, predicted, and the sentence with the highest p is taken
-"""
-
-
 def get_version_sentence(aufgaben_id, versionline, geloeste_saetze, data):
+    """
+    if p is <50%, all version sentences are retrieved, predicted, and the sentence with the highest p is taken
+    :param aufgaben_id: exercise id
+    :param versionline: versionline the user is in 
+    :param geloeste_saetze: array with sentences already solved
+    :param data: data array with information about user, session
+    :return: sentence id, phase, value of prediction
+    """
     # get all SatzIDs from AufgabenID from other versions
     retrieve = saetze.objects.filter(AufgabenID=aufgaben_id).exclude(
         Versionsnr=versionline
@@ -173,12 +180,12 @@ def get_version_sentence(aufgaben_id, versionline, geloeste_saetze, data):
         return id, "version", val
 
 
-"""
-Retrieves sentence_nr and version_nr from SatzID
-"""
-
-
 def get_sentence_nr_from_id(id):
+    """
+    Retrieves sentence_nr and version_nr from SatzID
+    :param id: SatzID
+    :returns: satznr and versionnr from SatzID
+    """
     try:
         retrieve = saetze.objects.filter(satzID=id)
         serialized = serializers.serialize(
