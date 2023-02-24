@@ -16,55 +16,72 @@ from .savePredictions import sendError2Report, sendErrorReport, sendReport
 """
 manages if conditions to find out what sentences should be predicted
 """
+
+
 def next_sentence(data):
+    aufgaben_id = data["AufgabenID"]
+    geloeste_saetze = data["geloesteSaetze"]
+    versionline = data["versionline"]
+    modus = data["Testposition"]
+    seq_mode = data["seqMode"]  # can be "normal", "onlyVersion", "onlyBaseline"
+    error_function = data["callFrom"]
 
-    aufgaben_id = data['AufgabenID']
-    geloeste_saetze = data['geloesteSaetze']
-    versionline = data['versionline']
-    modus = data['Testposition']
-    seq_mode = data['seqMode'] # can be "normal", "onlyVersion", "onlyBaseline"
-    error_function = data['callFrom']
-
-
-    if(seq_mode == "normal"):
-        predictions, choosing_strategy, pruefung = get_satz_ids(aufgaben_id, geloeste_saetze, versionline, data, error_function)
-        if(pruefung==1):
-            next_sentence_id, modus, prediction = 0000,'pruefung',9.000
+    if seq_mode == "normal":
+        predictions, choosing_strategy, pruefung = get_satz_ids(
+            aufgaben_id, geloeste_saetze, versionline, data, error_function
+        )
+        if pruefung == 1:
+            next_sentence_id, modus, prediction = 0000, "pruefung", 9.000
         else:
-            next_sentence_id, modus, prediction = choose_next_sentence(predictions, choosing_strategy, aufgaben_id, versionline, geloeste_saetze, data)
-    elif(seq_mode =="onlyBaseline"):
-        predictions, choosing_strategy, pruefung = get_satz_ids(aufgaben_id, geloeste_saetze, versionline, data, error_function)
-        if(pruefung==1):
-            next_sentence_id, modus, prediction = 1000,'pruefung',9.000
+            next_sentence_id, modus, prediction = choose_next_sentence(
+                predictions,
+                choosing_strategy,
+                aufgaben_id,
+                versionline,
+                geloeste_saetze,
+                data,
+            )
+    elif seq_mode == "onlyBaseline":
+        predictions, choosing_strategy, pruefung = get_satz_ids(
+            aufgaben_id, geloeste_saetze, versionline, data, error_function
+        )
+        if pruefung == 1:
+            next_sentence_id, modus, prediction = 1000, "pruefung", 9.000
         else:
-            next_sentence_id, modus, prediction = choose_next_sentence(predictions, 1, aufgaben_id, versionline, geloeste_saetze, data)
-    elif(seq_mode== "onlyVersion"):
-        next_sentence_id, modus, prediction = get_version_sentence(aufgaben_id, versionline, geloeste_saetze, data)        
+            next_sentence_id, modus, prediction = choose_next_sentence(
+                predictions, 1, aufgaben_id, versionline, geloeste_saetze, data
+            )
+    elif seq_mode == "onlyVersion":
+        next_sentence_id, modus, prediction = get_version_sentence(
+            aufgaben_id, versionline, geloeste_saetze, data
+        )
 
     sentence_nr, version_nr = get_sentence_nr_from_id(next_sentence_id)
     n = sendReport(data, prediction, next_sentence_id, modus)
 
     return sentence_nr, version_nr, modus
 
+
 """
 takes aufgaben_id, geloeste_saetze and versionline
 returns choosing strategy and list_of_ids to predict
 """
+
 def get_satz_ids(aufgaben_id, geloeste_saetze, versionline, data, error_function):
     # get all SatzIDs from AufgabenID
-    retrieve = saetze.objects.filter(AufgabenID =aufgaben_id, Versionsnr = versionline)
-    serialized = serializers.serialize("json", retrieve, fields=('AufgabenID'))
+    retrieve = saetze.objects.filter(AufgabenID=aufgaben_id, Versionsnr=versionline)
+    serialized = serializers.serialize("json", retrieve, fields=("AufgabenID"))
     all_ids = json.loads(serialized)
     all_ids_list = []
     for x in all_ids:
-        satz_ID = str(x['pk'])
+        satz_ID = str(x["pk"])
         all_ids_list.append(satz_ID)
 
     # compare list of satz ids to geloeste saetze and keep non-matches
     list_of_ids = set(all_ids_list) - set(geloeste_saetze)
 
     # if list of ids == 0, the test mode should be starting -> this means, prediction 9.0 is sent back and php code handels the start of the test mode
-    if(len(list_of_ids) == 0):
+    if len(list_of_ids) == 0:
         sendErrorReport(data, error_function)
         list_of_ids = geloeste_saetze
         predictions = send_to_prediction(list_of_ids, data)
@@ -72,7 +89,7 @@ def get_satz_ids(aufgaben_id, geloeste_saetze, versionline, data, error_function
 
     # choosing strategy shows, if the first sentence is calculated or any other sentence
     # important, bc if it is the first sentence, it is not checked if it is over threshold for versioning
-    elif(len(list_of_ids) == 9):
+    elif len(list_of_ids) == 9:
         choosing_strategy = 1
         predictions = send_to_prediction(list_of_ids, data)
         return predictions, choosing_strategy, 0
@@ -81,10 +98,15 @@ def get_satz_ids(aufgaben_id, geloeste_saetze, versionline, data, error_function
         predictions = send_to_prediction(list_of_ids, data)
         return predictions, choosing_strategy, 0
 
+
 """
 chooses from predictions the sentence with max p and checkes if it is below threshold
 """
-def choose_next_sentence(predictions, choosing_strategy, aufgaben_id, versionline, geloeste_saetze, data):
+
+
+def choose_next_sentence(
+    predictions, choosing_strategy, aufgaben_id, versionline, geloeste_saetze, data
+):
     array_of_max = np.argmax(predictions, axis=0)  # return list of max value in list
     index_of_max = array_of_max[1]
 
@@ -93,66 +115,79 @@ def choose_next_sentence(predictions, choosing_strategy, aufgaben_id, versionlin
     threshold = 0.5
 
     # do not check for p and versioning
-    if (choosing_strategy == 1):
-        return id, 'training', val
+    if choosing_strategy == 1:
+        return id, "training", val
 
     # check for p and versioning
     else:
-        if val>threshold:
-            return id, 'training', val
+        if val > threshold:
+            return id, "training", val
         else:
             return get_version_sentence(aufgaben_id, versionline, geloeste_saetze, data)
+
 
 """
 if p is <50%, all version sentences are retrieved, predicted, and the sentence with the highest p is taken
 """
+
+
 def get_version_sentence(aufgaben_id, versionline, geloeste_saetze, data):
-    
     # get all SatzIDs from AufgabenID from other versions
-    retrieve = saetze.objects.filter(AufgabenID =aufgaben_id).exclude(Versionsnr = versionline)
-    serialized = serializers.serialize("json", retrieve, fields=('AufgabenID'))
+    retrieve = saetze.objects.filter(AufgabenID=aufgaben_id).exclude(
+        Versionsnr=versionline
+    )
+    serialized = serializers.serialize("json", retrieve, fields=("AufgabenID"))
     all_ids = json.loads(serialized)
     all_ids_list = []
     for x in all_ids:
-        satz_ID = str(x['pk'])
+        satz_ID = str(x["pk"])
         all_ids_list.append(satz_ID)
 
     # compare lists and keep non-matches
     list_of_ids = set(all_ids_list) - set(geloeste_saetze)
 
-    if(len(list_of_ids) >0):
+    if len(list_of_ids) > 0:
         predictions = send_to_prediction(list_of_ids, data)
-        array_of_max = np.argmax(predictions, axis=0)  # return list of max value in list.
+        array_of_max = np.argmax(
+            predictions, axis=0
+        )  # return list of max value in list.
         index_of_max = array_of_max[1]
 
         id = predictions[index_of_max][0]
         val = predictions[index_of_max][1]
 
-        return id, 'version', val
+        return id, "version", val
     else:
-        #if all versions up, we choose a random id from the max values -> otherwise it will be displayed the same sentence
+        # if all versions up, we choose a random id from the max values -> otherwise it will be displayed the same sentence
         predictions = send_to_prediction(all_ids_list, data)
-        array_of_max = np.argmax(predictions, axis=0)  # return list of max value in list.
-        get_length =len(array_of_max)
-        rand = random.randint(0, get_length-1)
+        array_of_max = np.argmax(
+            predictions, axis=0
+        )  # return list of max value in list.
+        get_length = len(array_of_max)
+        rand = random.randint(0, get_length - 1)
         index_of_max = array_of_max[rand]
 
         id = predictions[index_of_max][0]
         val = predictions[index_of_max][1]
 
-        return id, 'version', val
+        return id, "version", val
+
 
 """
 Retrieves sentence_nr and version_nr from SatzID
 """
+
+
 def get_sentence_nr_from_id(id):
     try:
-        retrieve = saetze.objects.filter(satzID =id)
-        serialized = serializers.serialize("json", retrieve, fields=('Satznr','Versionsnr'))
+        retrieve = saetze.objects.filter(satzID=id)
+        serialized = serializers.serialize(
+            "json", retrieve, fields=("Satznr", "Versionsnr")
+        )
         sentence = json.loads(serialized)
         for x in sentence:
-            satz_nr = x['fields']['Satznr']
-            version_nr = x['fields']['Versionsnr']
+            satz_nr = x["fields"]["Satznr"]
+            version_nr = x["fields"]["Versionsnr"]
         return satz_nr, version_nr
     except:
-        return 0,0
+        return 0, 0
