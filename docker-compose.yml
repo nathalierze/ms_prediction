@@ -16,10 +16,10 @@ services:
     image: mariadb:10.4 # mysql:5.7.22
     restart: always
     environment:
-      MYSQL_DATABASE: orthogra_db1
-      MYSQL_USER: root
-      MYSQL_PASSWORT: test
-      MYSQL_ROOT_PASSWORD: test
+      MYSQL_DATABASE: "${DB_NAME}"
+      MYSQL_USER: "${DB_USER}"
+      MYSQL_PASSWORT: "${DB_PASS}"
+      MYSQL_ROOT_PASSWORD: "${DB_ROOT_PASS}"
     volumes:
       - .dbdata:/var/lib/mysql
     ports:
