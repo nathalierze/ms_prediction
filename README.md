@@ -16,4 +16,3 @@ In: Henning, P. A., Striewe, M.-0. 0. & Wölfel, M.-0. 0. (Hrsg.),
 
 Experiment results and description of interventions can be found here:
 tba
-
